@@ -2,19 +2,12 @@ from datetime import date
 from django.shortcuts import redirect, render
 from django import forms
 
-
-class UploadImageForm(forms.Form):
-    title = forms.CharField(max_length=50)
-    img = forms.ImageField()
+from Core.models import Camera, Picture
 
 
-def handle_uploaded_file(f):
-    # `f` is of type `UploadedFile`.
-    print(type(f))
-    print(f)
-    # with open('some/file/name.txt', 'wb+') as destination:
-    #     for chunk in f.chunks():
-    #         destination.write(chunk)
+class UploadPictureForm(forms.Form):
+    title = forms.CharField(required=False, max_length=120)
+    pic_file = forms.ImageField()
 
 
 def upload_view(request):
@@ -22,20 +15,22 @@ def upload_view(request):
     # https://docs.djangoproject.com/en/3.2/topics/http/file-uploads/
 
     if request.method == 'POST':
-        form = UploadImageForm(request.POST, request.FILES)
+        form = UploadPictureForm(request.POST, request.FILES)
 
         if form.is_valid():
-            # example 1:
-            handle_uploaded_file(request.FILES['img'])
+            # The values in `request.FILES` are of type `UploadedFile`.
 
-            # example 2:
-          # instance = ModelWithFileField(file_field=request.FILES['img'])
-          # instance.save()
+            # with open('some/file/name.txt', 'wb+') as destination:
+            #     for chunk in request.FILES['pic_file'].chunks():
+            #         destination.write(chunk)
+
+            pic_obj = Picture(camera=Camera.objects.all()[0], picture=request.FILES['pic_file'])
+            pic_obj.save()
 
             # message.success("…")
             return redirect('core:upload')
     else:
-        form = UploadImageForm()
+        form = UploadPictureForm()
 
     return render(request, 'Core/upload.html', {
         'heute': date.today(),
