@@ -1,0 +1,54 @@
+Installation
+============
+
+This section describes how the HallCam software is installed on a new RPi with an attached camera module.
+
+On the RPi:
+
+pi@raspberrypi:~ $ cat /etc/os-release | grep -i version
+VERSION_ID="10"
+VERSION="10 (buster)"
+VERSION_CODENAME=buster
+
+pi@raspberrypi:~ $ uname -a
+Linux raspberrypi 5.10.63-v7l+ #1459 SMP Wed Oct 6 16:41:57 BST 2021 armv7l GNU/Linux
+
+# The camera service will later save the pictures in this directory.
+pi@raspberrypi:~ $ sudo mkdir /var/HallCam
+pi@raspberrypi:~ $ sudo chown pi:pi /var/HallCam/
+pi@raspberrypi:~ $ mkdir /var/HallCam/pictures
+
+pi@raspberrypi:~ $ pwd
+/home/pi
+
+pi@raspberrypi:~ $ git clone https://github.com/carstenfuchs/hallcam.git HallCam
+Cloning into 'HallCam'...
+# ...
+
+pi@raspberrypi:~ $ sudo apt install python3-venv
+pi@raspberrypi:~ $ mkdir .virtualenvs
+pi@raspberrypi:~ $ python3 -m venv ~/.virtualenvs/HallCam-rpi
+pi@raspberrypi:~ $ ln -s .virtualenvs/HallCam-rpi/bin/activate activate_HallCam_rpi
+
+pi@raspberrypi:~ $ . activate_HallCam_rpi
+pi@raspberrypi:~ $ cd HallCam/rpi/
+
+
+
+Development
+===========
+
+Development is normally *not* done on the RPi itself, with display and keyboard attached, but remotely via SSH.
+
+On a local development (desktop) system:
+
+$ mkdir mounted_rpi
+$ sshfs pi@192.168.1.94:/home/pi mounted_rpi/
+
+$ mkdir mounted_rpi_pictures
+$ sshfs pi@192.168.1.94:/var/HallCam/pictures mounted_rpi_pictures/
+
+Later, to unmount:
+
+$ fusermount -u mounted_rpi/
+$ fusermount -u mounted_rpi_pictures/
