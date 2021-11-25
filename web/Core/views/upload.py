@@ -4,11 +4,19 @@ from django.views.decorators.csrf import csrf_exempt
 from django import forms
 
 from Core.models import Camera, Picture
+from HallCam import localconfig
 
 
 class UploadPictureForm(forms.Form):
-    title = forms.CharField(required=False, max_length=120)
+    camera   = forms.ModelChoiceField(queryset=Camera.objects.all(), to_field_name="name")
+    password = forms.CharField(max_length=40)
     pic_file = forms.ImageField()
+
+    def clean_password(self):
+        pwd = self.cleaned_data['password']
+        if pwd != localconfig.CAMERA_UPLOAD_PASSWORD:
+            raise forms.ValidationError("The password is wrong.")
+        return pwd
 
 
 @csrf_exempt

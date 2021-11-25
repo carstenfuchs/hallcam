@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Camera(models.Model):
-    name  = models.CharField(max_length=40)
+    name  = models.CharField(max_length=40, unique=True)
     scene = models.CharField(max_length=80)
     notes = models.CharField(max_length=80, blank=True)
 
