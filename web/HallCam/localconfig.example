@@ -1,0 +1,14 @@
+# This file contains local (server-specific) settings for the HallCam project
+# that are not supposed to be kept in the source code repository.
+
+DEBUG = False
+ALLOWED_EXTRA_HOSTS = []
+CAMERA_UPLOAD_PASSWORD = "insecure password QJgrQs9iHJH43e"
+
+# Make this unique, and don't share it with anybody.
+# For new secret keys, see `django/core/management/commands/startproject.py`:
+#
+# >>> from django.core.management.utils import get_random_secret_key
+# >>> print(get_random_secret_key())
+#
+SECRET_KEY = '&g98p733_vp$^xf_25yemfo+d*^*7=%a#0e7p^+t9qyo5nsa&1'
