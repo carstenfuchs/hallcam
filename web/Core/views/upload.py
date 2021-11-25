@@ -1,5 +1,6 @@
 from datetime import date
 from django.shortcuts import redirect, render
+from django.views.decorators.csrf import csrf_exempt
 from django import forms
 
 from Core.models import Camera, Picture
@@ -10,6 +11,7 @@ class UploadPictureForm(forms.Form):
     pic_file = forms.ImageField()
 
 
+@csrf_exempt
 def upload_view(request):
     # The basics of this view are explained at
     # https://docs.djangoproject.com/en/3.2/topics/http/file-uploads/
