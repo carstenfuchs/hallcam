@@ -28,8 +28,12 @@
 <body>
     <h1>Hallo Halle!</h1>
 
+    {% for mp in missing_paths %}
+        Ein Picture-Objekt hat sich auf die nicht vorhandene Bilddatei {{ mp }} bezogen, das Picture-Objekt wurde ebenfalls gelöscht.<br>
+    {% endfor %}
+
     {% for pic in pics %}
-        {{ pic }}: {{ pic.camera }}, {{ pic.picture }}, URL: {{ pic.picture.url }}, {{ pic.picture.width }}, {{ pic.picture.height }}
+        {{ pic }}: {{ pic.camera }}, {{ pic.picture }}, URL: {{ pic.picture.url }}, {{ pic.picture.width }}, {{ pic.picture.height }}<br>
     {% endfor %}
 
     <!-- ### position of the gallery ### -->
