@@ -20,10 +20,20 @@ class CaptureHandler:
         if not self.upload_url:
             return
 
+        with open("/sys/class/thermal/thermal_zone0/temp") as temp_file:
+            # https://www.elektronik-kompendium.de/sites/raspberry-pi/1911241.htm
+            # https://raspberrypi.stackexchange.com/questions/41784/temperature-differences-between-cpu-gpu
+            cpu_temp = temp_file.readline().strip()
+
         with open(filename, 'rb') as pic_file:
             try:
                 r = requests.post(
                     self.upload_url,
+                    data={
+                        'camera': localconfig.CAMERA_NAME,
+                        'password': localconfig.CAMERA_UPLOAD_PASSWORD,
+                        'cpu_temp': cpu_temp,
+                    },
                     files={'pic_file': pic_file},
                     allow_redirects=False,
                     timeout=10.0,
@@ -95,7 +105,7 @@ print("Entering main loop, press CTRL+C to exit.")
 try:
     while True:
         cap_handler.take_action(5)
-        sleep(15)
+        sleep(15 * 60)
 except KeyboardInterrupt:
     print("\nExiting...")
 

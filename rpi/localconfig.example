@@ -1,3 +1,9 @@
+# This file contains local (camera-specific) settings that
+# are not supposed to be kept in the source code repository.
+
 # For example:
 # UPLOAD_URL = "http://192.168.1.90:8000/upload/"
 UPLOAD_URL = None
+
+CAMERA_NAME = "camera_name"
+CAMERA_UPLOAD_PASSWORD = "insecure password QJgrQs9iHJH43e"
