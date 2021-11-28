@@ -8,6 +8,37 @@ from picamera import PiCamera
 import localconfig
 
 
+class Scheduler:
+    def is_due(self, dt0, dt1):
+        """
+        Returns the importance with which the Scheduler thinks that a picture
+        should be taken for some time t in intervall dt0 < t <= dt1.
+        """
+        return 0
+
+
+class SchedulerEvery5Minutes(Scheduler):
+    def is_due(self, dt0, dt1):
+        ts0 = dt0.timestamp()
+        ts1 = dt1.timestamp()
+
+        if (ts0 // 300) < (ts1 // 300):
+            return 4
+
+        return 0
+
+
+class SchedulerEveryFullHour(Scheduler):
+    def is_due(self, dt0, dt1):
+        ts0 = dt0.timestamp()
+        ts1 = dt1.timestamp()
+
+        if (ts0 // 3600) < (ts1 // 3600):
+            return 6
+
+        return 0
+
+
 class CaptureHandler:
 
     def __init__(self, pictures_dir, upload_url):
@@ -48,10 +79,7 @@ class CaptureHandler:
             except requests.exceptions.RequestException as e:
                 print(f"Requests raised an exception: {e}")
 
-    def take_action(self, importance):
-        now = datetime.now()
-        filename = f'{self.pictures_dir}/pic_{now.strftime("%Y%m%d_%H%M%S")}.jpg'
-
+    def take_action(self, now, importance):
         if (now - self.last_action_time).total_seconds() < 10.0:
             if importance <= self.last_action_impt:
                 print("Skipping action, throttling.")
@@ -59,6 +87,8 @@ class CaptureHandler:
 
         self.last_action_time = now
         self.last_action_impt = importance
+
+        filename = f'{self.pictures_dir}/pic_{now.strftime("%Y%m%d_%H%M%S")}_{importance}.jpg'
 
         print(f"Capturing picture, saving to {filename} ...")
         camera.capture(filename)
@@ -101,11 +131,29 @@ cap_handler = CaptureHandler(PICTURES_DIR, localconfig.UPLOAD_URL)
 camera.start_preview()
 sleep(2)
 
+schedulers = [
+    SchedulerEvery5Minutes(),
+    SchedulerEveryFullHour(),
+  # SchedulerExposureMonitor(),
+]
+
 print("Entering main loop, press CTRL+C to exit.")
 try:
+    prev_dt = datetime.now()
+
     while True:
-        cap_handler.take_action(5)
-        sleep(15 * 60)
+        curr_dt = datetime.now()
+
+        importance = 0
+        for sch in schedulers:
+            importance = max(importance, sch.is_due(prev_dt, curr_dt))
+
+        if importance > 0:
+            cap_handler.take_action(curr_dt, importance)
+
+        prev_dt = curr_dt
+        sleep(1)
+
 except KeyboardInterrupt:
     print("\nExiting...")
 
