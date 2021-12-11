@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-import requests, shutil
+import requests, shutil, socket
 from datetime import datetime, timedelta
 from time import sleep
 from pathlib import Path
@@ -194,4 +194,15 @@ def run_camera():
 
 
 if __name__ == "__main__":
-    run_camera()
+    lock_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+
+    try:
+        # The null byte (\0) means the socket is created in the abstract
+        # namespace instead of being created on the file system itself.
+        # https://stackoverflow.com/questions/788411/check-to-see-if-python-script-is-running
+        lock_socket.bind('\0' + 'HallCam')
+
+        # We got the lock.
+        run_camera()
+    except socket.error:
+        print("HallCam is already running.")
