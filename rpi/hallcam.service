@@ -1,0 +1,25 @@
+# For an introduction, see:
+# https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files
+#
+# For details, see the systemd.service man page:
+# https://www.freedesktop.org/software/systemd/man/systemd.service.html
+
+[Unit]
+Description=The HallCam controls the camera module, takes pictures and uploads them to a webserver
+After=multi-user.target
+Requires=network.target
+
+[Service]
+Type=simple
+User=pi
+Restart=always
+RestartSec=600
+
+# https://stackoverflow.com/questions/37211115/how-to-enable-a-virtualenv-in-a-systemd-service-unit
+ExecStart=/home/pi/.virtualenvs/HallCam-rpi/bin/python /home/pi/HallCam/rpi/run.py
+
+# Have stdout shown in the logs immediately.
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
