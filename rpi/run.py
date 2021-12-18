@@ -139,7 +139,7 @@ def upload_picture(filename, upload_url):
             if r.status_code != 302:
                 print(f"Unexpected response: Expected status_code 302, got status_code {r.status_code}.")
                 print(r)
-                print(r.text)
+                print(r.text[:2000])
         except requests.exceptions.Timeout as e:
             print(f"Requests raised a timeout exception: {e}")
         except requests.exceptions.RequestException as e:
