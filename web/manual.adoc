@@ -1,0 +1,174 @@
+// In PDF-Dateien, schreibe nicht „Chapter 2. Lori Konzepte“, sondern einfach nur „2. Lori Konzepte“.
+:chapter-label:
+
+// Binde die `docinfo.html` Datei in die HTML-Ausgabe ein.
+// Siehe http://discuss.asciidoctor.org/Dealing-with-screenshots-td5271.html
+// für Details ("private" scheint nur mit adoc-Suffix zu funktionieren).
+//:docinfo: shared
+
+// Das Verzeichnis, in dem image: und image:: nach den Bildern suchen.
+//:imagesdir: ./images
+
+// Schreibe die Tilde als Attribut „{tilde}“ statt direkt „~“, weil das Syntax-
+// Highlighting von Sublime-Text nicht mehr richtig funktioniert, wenn sie frei
+// verwendet wird.
+:tilde: ~
+
+
+= HallCam: Technical Handbook
+Carsten Fuchs
+:doctype: book
+//:title-logo-image: image:Titelbild.png[Logo, 236, 240]
+:toc: left
+:toclevels: 3
+:sectnums:
+:sectlinks:
+:icons: font
+:source-highlighter: rouge
+:experimental:    // Um kbd:[F11] benutzen zu können.
+
+HallCam is a video monitoring solution for buildings and places.
+
+
+== HallCam Webserver
+
+=== Installation auf Ubuntu 20.04 LTS
+
+==== Ausgangsbasis
+
+Standard Installation von Ubuntu Server in Deutsch, Version: Ubuntu 20.04 LTS
+
+Kontrolliere die Konfiguration und Funktion der NTP Synchronisierung:
+
+[source,shell]
+----
+$ timedatectl
+# [...]
+System clock synchronized: yes
+              NTP service: active
+
+$ timedatectl timesync-status
+# [...]
+----
+
+
+==== HallCam source code
+
+[source,shell]
+----
+$ pwd
+/home/carsten
+$ git clone https://github.com/carstenfuchs/hallcam.git HallCam
+Cloning into 'HallCam'...
+----
+
+
+==== Python: pip, virtualenv, ...
+
+[source,shell]
+----
+$ sudo apt install python3-venv
+$ cd ~
+$ mkdir .virtualenvs
+$ python3 -m venv ~/.virtualenvs/HallCam-web
+$ ln -s .virtualenvs/HallCam-web/bin/activate activate_HallCam_web
+$ . activate_HallCam_web
+$ cd HallCam/web/
+$ pip install wheel
+$ pip install -r requirements.txt
+----
+
+Can these steps be modernized?
+See https://mitelman.engineering/blog/python-best-practice/automating-python-best-practices-for-a-new-project/[Python Best Practices for a New Project in 2021].
+
+
+==== HallCam configuration
+
+[source,shell]
+----
+$ cp HallCam/localconfig.example HallCam/localconfig.py
+$ nano HallCam/localconfig.py
+----
+
+An diesem Punkt sollte HallCam bereits über die Management Shell funktionieren:
+
+[source,python]
+----
+$ ./manage.py shell
+Python 3.8.10 (default, Sep 28 2021, 16:10:42)
+>>> from Core.models import Camera
+>>> for c in Camera.objects.all():
+...     print(c)
+>>> quit()
+----
+
+
+==== erster Patchday
+
+There is no `patchday.py` script for the HallCam at this time.
+However, we need to create the directory that `./manage.py collectstatic` collects into and from which the webserver serves the static files.
+We also need the directory into which the webserver can save the uploaded media (pictures) from the cameras.
+
+[source,shell]
+----
+$ sudo mkdir /var/www/HallCam-static
+$ sudo chown carsten:carsten /var/www/HallCam-static/
+
+$ sudo mkdir /var/www/HallCam-media
+$ sudo chown carsten:carsten /var/www/HallCam-media/
+
+$ # ./patchday.py
+$ ./manage.py collectstatic --no-input
+----
+
+
+==== Apache und mod_wsgi
+
+Überprüfe einige wichtige Dateien und passe sie ggf. an:
+
+[source,shell]
+----
+$ cat /etc/hostname
+l-lori-01
+
+$ cat /etc/hosts
+127.0.0.1 localhost
+127.0.1.1 l-lori-01.rofu.de l-lori-01
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+----
+
+Beginne die Installation:
+
+[source,shell]
+----
+$ sudo apt install apache2 libapache2-mod-wsgi-py3
+----
+
+Kann direkt danach im Browser http://localhost/ oder z.B. http://l-lori-01/ aufrufen („It works!“).
+
+Füge nun die Konfigurationsdateien `/etc/apache2/sites-available/hallcam[-ssl].conf` hinzu.
+Diese Dateien sind der wichtigste Bestandteil der Apache-Konfiguration:
+[source,shell]
+----
+$ sudo cp HallCam/etc_apache2_sites-available_hallcam.conf /etc/apache2/sites-available/hallcam.conf
+$ sudo a2dissite 000-default.conf
+$ sudo a2enmod headers  # mod_headers wird in hallcam.conf benötigt
+$ sudo a2ensite hallcam.conf
+----
+
+Abschluss der Apache-Konfiguration:
+
+[source,shell]
+----
+# Starte den Apache Server neu, um alle der o.g. Änderungen aktiv werden zu lassen.
+$ sudo systemctl restart apache2
+----
+
+
+==== Done!
+
+Browsing to http://localhost/ shows the home page of the HallCam project!

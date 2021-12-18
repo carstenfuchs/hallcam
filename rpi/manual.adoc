@@ -1,0 +1,180 @@
+// In PDF-Dateien, schreibe nicht „Chapter 2. Lori Konzepte“, sondern einfach nur „2. Lori Konzepte“.
+:chapter-label:
+
+// Binde die `docinfo.html` Datei in die HTML-Ausgabe ein.
+// Siehe http://discuss.asciidoctor.org/Dealing-with-screenshots-td5271.html
+// für Details ("private" scheint nur mit adoc-Suffix zu funktionieren).
+:docinfo: shared
+
+// Das Verzeichnis, in dem image: und image:: nach den Bildern suchen.
+:imagesdir: ./images
+
+
+= HallCam: A video monitoring solution for buildings and places
+Carsten Fuchs
+:doctype: book
+:title-logo-image: image:Titelbild.png[Logo, 236, 240]
+:toc: left
+:toclevels: 3
+:sectnums:
+:sectlinks:
+:icons: font
+:source-highlighter: rouge
+:experimental:    // Um kbd:[F11] benutzen zu können.
+
+
+== Hardware
+
+Each video camera in our system consists of a dedicated Raspberry Pi with a Camera Module.
+
+  - https://www.raspberrypi.org/
+  - https://de.wikipedia.org/wiki/Raspberry_Pi
+
+The Raspberry Pi can be equipped with a PoE board so that its Ethernet port can provide power and reliable network access.
+
+
+=== Parts list
+
+  1. https://www.raspberrypi.org/products/raspberry-pi-4-model-b/[Raspberry Pi 4 Model B]
+  1. https://www.raspberrypi.org/products/poe-hat/[PoE HAT]
+  1. https://www.raspberrypi.org/products/camera-module-v2/[Camera Module V2] (or the https://www.raspberrypi.org/products/pi-noir-camera-v2/[NoIR] variant)
+  1. https://www.samsung.com/de/memory-storage/memory-card/memory-card-pro-endurance-32gb-mb-mj32ga-eu/[Samsung microSD PRO Endurance card]
+  1. Ethernet cable to a PoE-capable Ethernet switch
+  1. A case. See the next section for details.
+
+
+=== Case
+
+[discrete]
+==== Requirements
+
+Weatherproof::
+With the camera being mounted under a roof we have no direct sunlight and no direct rain, but we still need protection against very hot, very cold, possibly humid and possibly dusty air.
+
+Cable inlet::
+The inlet for the network cable must be weatherproof.
+Ideally, it should have a pull relief.
+
+Integrated camera attachments::
+The camera must be fixed directly in the case along with the Raspberry Pi.
+It's position should be flexible at that it can be mounted on the front, side or back of the case.
+
+Mounting options::
+It should be easy to attach the case to flat surfaces, that is, there must be enough space for the drill holes and screws.
+Additionally, the case should have a standard 1/4-20 tripod mounting hole for flexible and manufacturer independent mounting.
+
+Other::
+In case of a short circuit or thermal runaway, the case should be fire resistant.
+
+Cases that are nice but don't meet all requirements are
+https://labists.com/products/raspberry-pi-4-case-kit[1],
+https://www.datapro.net/products/rugged-aluminum-raspberry-pi-camera-case.html[2] and
+https://www.raspberrypi-spy.co.uk/2016/08/pi-camera-3d-printed-cylinder-mount/[3]
+
+Cases that meet the requirements:
+
+  - 3D printed case: https://tinkererblog.wordpress.com/2015/07/28/how-i-designed-a-compact-weatherproof-raspberry-pi-case/[Blog post], https://pinshape.com/users/21701-pkb81#designs-tab-open[PinShape], https://de.3dexport.com/3dmodel-rainberry3-weatherproof-case-for-raspberry-pi-3-145889.htm[3DExport]
+  - Alternativ: ABS Univeralgehäuse
+
+
+=== Überlegungen zum 24/7 Betrieb
+
+Wichtigste Aspekte:
+
+  - stabiles Netzteil -> Original-Netzteil, siehe Teilliste oben
+  - langlebige micro SD Karte
+      * https://www.amazon.de/Samsung-MB-MJ128GA-EU-microSDXC-Endurance/dp/B07CY3QSST?th=1[Samsung MB-MJ32GA/EU PRO Endurance 32 GB], siehe Teileliste oben
+      * https://www.computerbase.de/2018-04/micron-western-digital-surveillance-microsd/
+  - Anpassungen im Betriebssystem
+
+Siehe:
+
+  - https://www.datenreise.de/raspberry-pi-stabiler-24-7-dauerbetrieb/
+  - https://www.elektronik-kompendium.de/sites/raspberry-pi/2002251.htm
+
+
+== Installation
+
+This section describes how the HallCam software is installed on a new RPi with an attached camera module.
+
+On the RPi:
+
+[source,shell]
+----
+pi@raspberrypi:~ $ cat /etc/os-release | grep -i version
+VERSION_ID="10"
+VERSION="10 (buster)"
+VERSION_CODENAME=buster
+
+pi@raspberrypi:~ $ uname -a
+Linux raspberrypi 5.10.63-v7l+ #1459 SMP Wed Oct 6 16:41:57 BST 2021 armv7l GNU/Linux
+
+pi@raspberrypi:~ $ sudo raspi-config
+# Enable SSH
+# Performance Options > GPU Memory > 256 MB     # https://stackoverflow.com/questions/39251815/python-not-taking-picture-at-highest-resolution-from-raspberry-pi-camera
+# ... ?
+
+# In `.bashrc`, replace line
+#     # alias dir='dir --color=auto'
+# with
+#     alias dir='dir -l --color=auto --group-directories-first'
+pi@raspberrypi:~ $ nano .bashrc
+
+# Reboot
+
+# The camera service will later save the pictures in this directory.
+pi@raspberrypi:~ $ sudo mkdir /var/HallCam
+pi@raspberrypi:~ $ sudo chown pi:pi /var/HallCam/
+pi@raspberrypi:~ $ mkdir /var/HallCam/pictures
+
+pi@raspberrypi:~ $ pwd
+/home/pi
+
+pi@raspberrypi:~ $ git clone https://github.com/carstenfuchs/hallcam.git HallCam
+Cloning into 'HallCam'...
+# ...
+
+pi@raspberrypi:~ $ sudo apt install python3-venv
+pi@raspberrypi:~ $ mkdir .virtualenvs
+pi@raspberrypi:~ $ python3 -m venv ~/.virtualenvs/HallCam-rpi
+pi@raspberrypi:~ $ ln -s .virtualenvs/HallCam-rpi/bin/activate activate_HallCam_rpi
+
+pi@raspberrypi:~ $ . activate_HallCam_rpi
+pi@raspberrypi:~ $ cp HallCam/rpi/localconfig.example HallCam/rpi/localconfig.py
+pi@raspberrypi:~ $ nano HallCam/rpi/localconfig.py  # configure with local settings
+
+pi@raspberrypi:~/HallCam/rpi $ sudo cp hallcam.service /etc/systemd/system
+pi@raspberrypi:~/HallCam/rpi $ sudo systemctl daemon-reload
+pi@raspberrypi:~/HallCam/rpi $ sudo systemctl enable hallcam.service
+Created symlink /etc/systemd/system/multi-user.target.wants/hallcam.service → /etc/systemd/system/hallcam.service.
+pi@raspberrypi:~/HallCam/rpi $ sudo systemctl status
+----
+
+== Development
+
+Development is normally *not* done on the RPi itself, with display and keyboard attached, but remotely via SSH.
+
+On a local development (desktop) system:
+
+[source,shell]
+----
+$ mkdir mounted_rpi
+$ sshfs pi@192.168.1.94:/home/pi mounted_rpi/
+
+$ mkdir mounted_rpi_pictures
+$ sshfs pi@192.168.1.94:/var/HallCam/pictures mounted_rpi_pictures/
+----
+
+Later, to unmount:
+
+[source,shell]
+----
+$ fusermount -u mounted_rpi/
+$ fusermount -u mounted_rpi_pictures/
+----
+
+
+== Notes
+
+For reference, here is a similar project:
+https://blog.helmutkarger.de/raspberry-video-camera-teil-1-oachkatzl-cam/
