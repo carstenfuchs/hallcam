@@ -62,9 +62,9 @@ if __name__ == "__main__":
 
     # run(["svn", "info", "."], output_callback=output_callback_svn_info)
     # run(["svn", "update"])
-    run(["pip", "install", "-q", "-r", "requirements-ubuntu.txt"])
+    run(["pip", "install", "-q", "-r", "requirements-other.txt"])
 
-    # run(["python", "bookmaker.py", "--pdf"])
+    run(["sphinx-build", "-n", "-b", "html", "docs/", "docs/_build/html/"])
 
     # Stelle sicher, dass das System die richtige Uhrzeit verwendet.
     run(["timedatectl", "show", "--property", "CanNTP",          "--value"], output_callback=output_callback_check_yes, quiet=True)

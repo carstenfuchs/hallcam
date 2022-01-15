@@ -10,6 +10,7 @@ Welcome to HallCam's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+Hallo!
 
 
 Indices and tables
