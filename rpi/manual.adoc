@@ -93,6 +93,11 @@ Siehe:
   - https://www.elektronik-kompendium.de/sites/raspberry-pi/2002251.htm
 
 
+=== Options
+
+https://howchoo.com/g/mwnlytk3zmm/how-to-add-a-power-button-to-your-raspberry-pi
+
+
 == Installation
 
 This section describes how the HallCam software is installed on a new RPi with an attached camera module.
@@ -110,9 +115,11 @@ pi@raspberrypi:~ $ uname -a
 Linux raspberrypi 5.10.63-v7l+ #1459 SMP Wed Oct 6 16:41:57 BST 2021 armv7l GNU/Linux
 
 pi@raspberrypi:~ $ sudo raspi-config
-# Enable SSH
+# System Options > Hostname > "camera-X"
+# System Options > Boot > "Console"
+# Interface Options > Enable Camera
+# Interface Options > Enable SSH
 # Performance Options > GPU Memory > 256 MB     # https://stackoverflow.com/questions/39251815/python-not-taking-picture-at-highest-resolution-from-raspberry-pi-camera
-# ... ?
 
 # In `.bashrc`, replace line
 #     # alias dir='dir --color=auto'
@@ -149,6 +156,7 @@ pi@raspberrypi:~/HallCam/rpi $ sudo systemctl enable hallcam.service
 Created symlink /etc/systemd/system/multi-user.target.wants/hallcam.service → /etc/systemd/system/hallcam.service.
 pi@raspberrypi:~/HallCam/rpi $ sudo systemctl status
 ----
+
 
 == Development
 
