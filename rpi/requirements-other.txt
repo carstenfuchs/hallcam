@@ -1,0 +1,4 @@
+# picamera==1.13
+requests==2.26.0
+sphinx==4.3.2
+sphinx-rtd-theme==1.0.0

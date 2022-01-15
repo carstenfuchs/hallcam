@@ -147,6 +147,10 @@ pi@raspberrypi:~ $ python3 -m venv ~/.virtualenvs/HallCam-rpi
 pi@raspberrypi:~ $ ln -s .virtualenvs/HallCam-rpi/bin/activate activate_HallCam_rpi
 
 pi@raspberrypi:~ $ . activate_HallCam_rpi
+
+pip install wheel   # ?? On Ubuntu only?
+./patchday
+
 pi@raspberrypi:~ $ cp HallCam/rpi/localconfig.example HallCam/rpi/localconfig.py
 pi@raspberrypi:~ $ nano HallCam/rpi/localconfig.py  # configure with local settings
 
