@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Accounts.apps.AccountsConfig',
     'Core.apps.CoreConfig',
-    'Viewer.apps.ViewerConfig',
 ]
 
 MIDDLEWARE = [
