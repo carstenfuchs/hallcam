@@ -30,7 +30,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark pt-2 pb-2">
         <div class="container-fluid px-lg-5">
-            <a class="navbar-brand py-0" href="{% url 'core:home' %}"><img class="rounded-circle Halle" src="{% static 'Core/Halle-1-640.jpg' %}" alt="Halle"></a>
+            <a class="navbar-brand py-0 me-4" href="{% url 'core:home' %}"><img class="rounded-circle Halle" src="{% static 'Core/Halle-1-640.jpg' %}" alt="Halle"></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#id_navbarNav" aria-controls="id_navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -43,28 +43,28 @@
                         <li class="nav-item">
                             <a class="nav-link me-3" href="{% url 'core:upload' %}">Upload</a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link me-3 dropdown-toggle" href="#" id="id_HandbookMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Handbuch</a>
-                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="id_HandbookMenu">
-                                <li><a class="dropdown-item" href="{% static 'Handbuch/Lori-MitarbeiterHandbuch.html' %}">Anzeigen <span class="small text-muted">HTML</span></a></li>
-                                <li><a class="dropdown-item" href="{% static 'Handbuch/Lori-MitarbeiterHandbuch.pdf' %}">Herunterladen <span class="small text-muted">PDF</span></a></li>
-                            </ul>
+                        {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link me-3" href="{% url 'admin:index' %}">Admin</a>
                         </li>
+                        {% endif %}
                     </ul>
 
                     <ul class="navbar-nav nav-pills">
                         <li class="nav-item dropdown">
                             <a class="nav-link ms-3 pe-0 dropdown-toggle" href="#" id="id_UserMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <img class="rounded-circle gravatar" src="{{ user.get_gravatar_url }}?s=22" style="width: 22px; height: 22px;" alt="">
-                                {{ user.first_name }}</a>
+                                {{ user.short_name }}</a>
                             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="id_UserMenu">
+                                {% comment %}
                                 {% if user.is_staff and perms.Accounts.change_user %}
                                     <li><a class="dropdown-item" href="{% url 'admin:Accounts_user_change' user.id %}">Benutzerkonto</a></li>
                                 {% endif %}
                                 {% if user.has_usable_password %}
                                     <li><a class="dropdown-item" href="{% url 'mitarbeiterportal:password-change' %}">Passwort ändern</a></li>
                                 {% endif %}
-                                <li><a class="dropdown-item" href="{% url 'mitarbeiterportal:logout' %}">Abmelden</a></li>
+                                {% endcomment %}
+                                <li><a class="dropdown-item" href="{% url 'admin:logout' %}">Abmelden</a></li>
                             </ul>
                         </li>
                     </ul>
