@@ -11,6 +11,7 @@ class UploadPictureForm(forms.Form):
     camera   = forms.ModelChoiceField(queryset=Camera.objects.all(), to_field_name="name")
     password = forms.CharField(max_length=40)
     pic_file = forms.ImageField()
+  # sys_info = forms.CharField(max_length=250, required=False)
 
     def clean_password(self):
         pwd = self.cleaned_data['password']
