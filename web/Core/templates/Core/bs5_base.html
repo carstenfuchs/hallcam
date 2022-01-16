@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google" content="notranslate">{# Keep Chrome from bothering the user about translations. #}
+    <meta name="robots" content="NONE,NOARCHIVE">
+
+    <link rel="icon" type="image/png" href="{% static 'Core/favicon.png' %}">
+    <link rel="stylesheet" href="https://bootswatch.com/5/darkly/bootstrap.min.css">
+
+    <style>
+        nav.navbar {
+            /* padding-top: 0.5rem; */
+        }
+
+        nav.navbar a.navbar-brand > img.Halle {
+            height: 60px;
+            width: 60px;
+        }
+    </style>
+
+    {% block extrastyle %}{% endblock %}
+    {% block extrahead %}{% endblock %}
+
+    <title>{% block title %}{{ title|default:"Welcome" }}{% endblock %}{% if user.profile %} - {{ user.profile.ma.str_individual }}{% endif %} - HallCam</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark pt-2 pb-2">
+        <div class="container-fluid px-lg-5">
+            <a class="navbar-brand py-0" href="{% url 'core:home' %}"><img class="rounded-circle Halle" src="{% static 'Core/Halle-1-640.jpg' %}" alt="Halle"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#id_navbarNav" aria-controls="id_navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="id_navbarNav">
+                {% if user.is_active %}
+                    <ul class="navbar-nav nav-pills me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link me-3 {# active #}" {# aria-current="page" #} href="{% url 'core:home' %}">Übersicht</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link me-3" href="{% url 'core:upload' %}">Upload</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link me-3 dropdown-toggle" href="#" id="id_HandbookMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Handbuch</a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="id_HandbookMenu">
+                                <li><a class="dropdown-item" href="{% static 'Handbuch/Lori-MitarbeiterHandbuch.html' %}">Anzeigen <span class="small text-muted">HTML</span></a></li>
+                                <li><a class="dropdown-item" href="{% static 'Handbuch/Lori-MitarbeiterHandbuch.pdf' %}">Herunterladen <span class="small text-muted">PDF</span></a></li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <ul class="navbar-nav nav-pills">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link ms-3 pe-0 dropdown-toggle" href="#" id="id_UserMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img class="rounded-circle gravatar" src="{{ user.get_gravatar_url }}?s=22" style="width: 22px; height: 22px;" alt="">
+                                {{ user.first_name }}</a>
+                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="id_UserMenu">
+                                {% if user.is_staff and perms.Accounts.change_user %}
+                                    <li><a class="dropdown-item" href="{% url 'admin:Accounts_user_change' user.id %}">Benutzerkonto</a></li>
+                                {% endif %}
+                                {% if user.has_usable_password %}
+                                    <li><a class="dropdown-item" href="{% url 'mitarbeiterportal:password-change' %}">Passwort ändern</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{% url 'mitarbeiterportal:logout' %}">Abmelden</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                {% else %}
+                    <div class="navbar-nav nav-pills ms-auto">
+                        <a class="nav-link" href="{% url 'admin:login' %}">Anmelden</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% block headline %}
+            {% if title or user.profile %}
+            <div class="container-fluid shadow-sm px-lg-5 py-4 mb-5">
+                <div class="row">
+                    {% if title %}
+                        <div class="col">
+                            <h1 class="my-0">{{ title }}</h1>
+                        </div>
+                    {% endif %}
+                    {% if user.profile %}
+                        <div class="col align-self-center">
+                            <h2 class="lead text-muted text-end my-0">{{ user.profile.ma.str_individual }}</h2>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        {% endblock %}
+        {% block messages %}
+            {% if messages %}
+                <div class="container">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible" role="alert">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        {{ message|capfirst }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endblock %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}{% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    {% block extrascript %}{% endblock %}
+</body>
+</html>
