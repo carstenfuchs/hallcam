@@ -13,11 +13,18 @@ class UploadPictureForm(forms.Form):
     pic_file = forms.ImageField()
   # sys_info = forms.CharField(max_length=250, required=False)
 
-    def clean_password(self):
-        pwd = self.cleaned_data['password']
-        if pwd != localconfig.CAMERA_UPLOAD_PASSWORD:
-            raise forms.ValidationError("The password is wrong.")
-        return pwd
+    def clean(self):
+        cd = super().clean()
+
+        # Setze hier gar nicht erst an, solange es noch Felder gibt, die in sich fehlerhaft sind.
+        if self.errors:
+            return
+
+        if cd['password'] != cd['camera'].pwd:
+            self.add_error('password', "The password is wrong.")
+            return cd
+
+        return cd
 
 
 @csrf_exempt

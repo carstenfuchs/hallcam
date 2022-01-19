@@ -1,10 +1,13 @@
 from django.db import models
+from Accounts.models import User
 
 
 class Camera(models.Model):
     name  = models.CharField(max_length=40, unique=True)
+    pwd   = models.CharField(max_length=80, verbose_name="password", help_text="The password that the camera must use in the picture upload form.")
     scene = models.CharField(max_length=80)
     notes = models.CharField(max_length=80, blank=True)
+    users = models.ManyToManyField(User, blank=True, help_text="Who can see this camera's pictures?")
 
     def __str__(self):
         return f"{self.name} ({self.scene})"

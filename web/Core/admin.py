@@ -3,7 +3,8 @@ from Core.models import Camera, Picture
 
 
 class CameraAdmin(admin.ModelAdmin):
-    list_display = ('name', 'scene', 'notes')
+    filter_horizontal = ['users']
+    list_display = ('name', 'scene', 'notes', 'pwd')
 
 admin.site.register(Camera, CameraAdmin)
 
