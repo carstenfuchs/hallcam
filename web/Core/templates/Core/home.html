@@ -1,15 +1,64 @@
 {% extends "Core/bs5_base.html" %}
 {# load static #}
 
+{% block extrastyle %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nanogallery2@3/dist/css/nanogallery2.min.css">
+    <style>
+        div.nanogallery_container {
+            margin-top: 40px;
+            margin-bottom: 60px;
+        }
+    </style>
+{% endblock %}
+
+{% block extrascript %}
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nanogallery2@3/dist/jquery.nanogallery2.min.js"></script>
+
+    <script>
+        jQuery(document).ready(function() {
+            {% for cp in cam_pics %}
+                {% if cp.pictures %}
+                    jQuery("#id_nanogallery_{{ forloop.counter }}").nanogallery2({
+                        thumbnailHeight:  400,
+                        thumbnailWidth:   300,
+                        itemsBaseURL:     '',
+
+                        items: [
+                            {% for pic in cp.pictures %}
+                                {
+                                    src: '{{ pic.picture.url }}',
+                                    srct: '{{ pic.picture.url }}',
+                                    title: 'Hallo!',
+                                },
+                            {% endfor %}
+                        ]
+                    });
+                {% endif %}
+            {% endfor %}
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1>Welcome</h1>
-            1 of 2
-        </div>
-        <div class="col">
-            2 of 2
+            {% for mp in missing_paths %}
+                Ein Picture-Objekt hat sich auf die nicht vorhandene Bilddatei {{ mp }} bezogen, das Picture-Objekt wurde ebenfalls gelöscht.<br>
+            {% endfor %}
+
+            {% for cp in cam_pics %}
+                <h2 class="text-center">{{ cp.camera.name }}<br><small class="text-muted">{{ cp.camera.scene }}</small></h2>
+                {% if cp.pictures %}
+                    {# Die Nanogallery wird in diesem Element die Bilder anzeigen. #}
+                    <div id="id_nanogallery_{{ forloop.counter }}" class="nanogallery_container"></div>
+                {% else %}
+                    <p class="text-center">Es sind keine Bilder vorhanden.</p>
+                {% endif %}
+            {% empty %}
+                <p class="text-center">Es sind keine Bilder vorhanden.</p>
+            {% endfor %}
         </div>
     </div>
 </div>

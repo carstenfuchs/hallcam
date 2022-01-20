@@ -80,11 +80,11 @@
     <main>
         {% block headline %}
             {% if title or user.profile %}
-            <div class="container-fluid shadow-sm px-lg-5 py-4 mb-5">
+            <div class="container-fluid shadow-sm px-lg-5 py-4 mb-5" style="background-color: #232323;">
                 <div class="row">
                     {% if title %}
                         <div class="col">
-                            <h1 class="my-0">{{ title }}</h1>
+                            <h1 class="my-0 text-center">{{ title }}</h1>
                         </div>
                     {% endif %}
                     {% if user.profile %}
