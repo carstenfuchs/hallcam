@@ -1,5 +1,8 @@
-from datetime import date
+from backports.zoneinfo import ZoneInfo
+from datetime import date, datetime
+
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
 
@@ -30,19 +33,36 @@ class UploadPictureForm(forms.Form):
 @csrf_exempt
 def upload_view(request):
     # The basics of this view are explained at
-    # https://docs.djangoproject.com/en/3.2/topics/http/file-uploads/
+    # https://docs.djangoproject.com/en/4.0/topics/http/file-uploads/
 
     if request.method == 'POST':
         form = UploadPictureForm(request.POST, request.FILES)
 
         if form.is_valid():
             # The values in `request.FILES` are of type `UploadedFile`.
+            uploaded_pic_file = request.FILES['pic_file']
 
             # with open('some/file/name.txt', 'wb+') as destination:
             #     for chunk in request.FILES['pic_file'].chunks():
             #         destination.write(chunk)
+            print(f"{uploaded_pic_file.name = }")
+            print(f"{uploaded_pic_file.size = }")
+            print(f"{uploaded_pic_file.content_type = }")
+            print(f"{uploaded_pic_file.content_type_extra = }")
 
-            pic_obj = Picture(camera=Camera.objects.all()[0], picture=request.FILES['pic_file'])
+            try:
+                dt = datetime.strptime(uploaded_pic_file.name[4:17], "%Y%m%d_%H%M")
+                dt = dt.replace(tzinfo=ZoneInfo('Europe/Berlin'))
+            except ValueError:
+                dt = timezone.now()
+
+            print(f"{dt = }")
+
+            pic_obj = Picture(
+                camera=Camera.objects.all()[0],
+                picture=uploaded_pic_file,
+                timestamp=dt,
+            )
             pic_obj.save()
 
             # message.success("…")
