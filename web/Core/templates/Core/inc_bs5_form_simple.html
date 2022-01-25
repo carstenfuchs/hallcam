@@ -1,0 +1,70 @@
+{% load widget_tweaks %}
+
+{% comment %}
+    This template renders the fields in Bootstrap's default layout:
+    Each input field is 100 % wide and its label is above.
+
+    Some guidance for this template was taken from
+    https://simpleisbetterthancomplex.com/article/2017/08/19/how-to-render-django-form-manually.html
+{% endcomment %}
+
+{% if form.errors and not form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+        Beim Verarbeiten des Formulars sind Fehler aufgetreten.
+        Bitte beheben Sie die unten aufgeführten Probleme und senden Sie das Formular erneut.
+    </div>
+{% endif %}
+
+{% for error in form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+{% endfor %}
+
+{% for hidden_field in form.hidden_fields %}
+    {% for error in hidden_field.errors %}
+        <div class="alert alert-danger" role="alert">
+            Fehler im verborgenen Feld „{{ hidden_field.label }}“: {{ error }}
+        </div>
+    {% endfor %}
+    {{ hidden_field }}
+{% endfor %}
+
+{% comment %}
+    {# TODO: Wie integriert man das am besten in die allg. Schleife unten? #}
+    {% if field.field.widget.input_type == "checkbox" %}
+        <div class="mb-3 form-check">
+            {{ field|add_class:"form-check-input" }}
+            {# The following yields what we would have expected from `field.label_tag|add_class:"…"` #}
+            {{ field|add_label_class:"form-check-label" }}
+        </div>
+    {% else %}
+        ...
+    {% endif %}
+{% endcomment %}
+
+{% for field in form.visible_fields %}
+    {# TODO 1: checkboxes, see above #}
+    {# TODO 2: datepicker support (note: input groups require an additional .has-validation class) #}
+
+    <div class="mb-4">
+        {# The following yields what we would have expected from `field.label_tag|add_class:"…"` #}
+        {{ field|add_label_class:"form-label" }}
+
+        {% if field.errors %}
+            {{ field|add_class:"form-control is-invalid" }}
+        {% elif form.is_bound %}
+            {{ field|add_class:"form-control" }}{# We might add "is-valid" here, but I think it is confusing. #}
+        {% else %}
+            {{ field|add_class:"form-control" }}
+        {% endif %}
+
+        {% for error in field.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+        {% endfor %}
+
+        {% if field.help_text %}
+            <div class="form-text">{{ field.help_text }}</div>
+        {% endif %}
+    </div>
+{% endfor %}

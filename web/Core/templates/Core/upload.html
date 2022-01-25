@@ -1,16 +1,26 @@
-{# extends "Core/base.html" #}
+{% extends "Core/bs5_base.html" %}
 {# load static #}
 
-<h1>Upload image 😜</h1>
+{% block extrastyle %}
+    <style>
+        div.upload_form {
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+{% endblock %}
 
-<p>Heute ist der {{ heute }}.</p>
-
+{% block content %}
 <div class="container">
-    <form method="post" enctype="multipart/form-data">
-        {# csrf_token #}
-        <table>
-            {{ form.as_table }}
-        </table>
-        <input type="submit" value="Submit">
-    </form>
+    <div class="row">
+        <div class="col upload_form">
+            <form method="post" enctype="multipart/form-data">
+                {# csrf_token #}
+                {% include 'Core/inc_bs5_form_simple.html' with form=form only %}
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
 </div>
+{% endblock %}

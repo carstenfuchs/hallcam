@@ -51,6 +51,6 @@ def upload_view(request):
         form = UploadPictureForm()
 
     return render(request, 'Core/upload.html', {
-        'heute': date.today(),
+        'title': "Upload image 😜",
         'form': form,
     })
