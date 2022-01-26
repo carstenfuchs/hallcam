@@ -87,7 +87,7 @@ class DummyCamera:
 
         filename = f'{pictures_dir}/{get_pic_stem_from_data(now, importance)}.jpg'
 
-        print(f"Capturing picture, but no camera is available: Saving dummy picture to {filename} ...")
+        print(f"Capturing picture, but no physical camera is available: Saving dummy picture to {filename} ...")
         try:
             img = Image.new("RGB", (400, 300), (255, 220, 200))
             img.save(filename)

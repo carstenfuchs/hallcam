@@ -127,8 +127,8 @@ def upload_picture(filename, upload_url):
             r = requests.post(
                 upload_url,
                 data={
-                    'camera': localconfig.CAMERA_NAME,
-                    'password': localconfig.CAMERA_UPLOAD_PASSWORD,
+                    'camera': socket.gethostname(),
+                    'password': localconfig.UPLOAD_PASSWORD,
                     'cpu_temp': cpu_temp,
                 },
                 files={'pic_file': pic_file},
