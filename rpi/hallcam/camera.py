@@ -1,9 +1,17 @@
 from datetime import datetime
-from picamera import PiCamera, Color
+from time import sleep
 from common import get_pic_stem_from_data
 
+try:
+    from picamera import PiCamera, Color
+    is_raspberrypi = True
+except ImportError:
+    # In the absence of the PiCamera, we need PIL in order to create dummy pictures.
+    from PIL import Image
+    is_raspberrypi = False
 
-class Camera:
+
+class RaspberryPiCamera:
     """This is a wrapper around the `PiCamera`."""
 
     # The maximum resolution is 3280×2464 for still photos, 1920×1080 for video recording.
@@ -31,6 +39,13 @@ class Camera:
         self.last_action_time = datetime(2000, 1, 1)
         self.last_action_impt = 0
 
+    def start_preview(self):
+        self.pi_cam.start_preview()
+        sleep(2)
+
+    def stop_preview(self):
+        self.pi_cam.stop_preview()
+
     def capture_picture(self, now, importance, pictures_dir):
         if (now - self.last_action_time).total_seconds() < 10.0:
             if importance <= self.last_action_impt:
@@ -46,3 +61,42 @@ class Camera:
         self.pi_cam.annotate_text = now.strftime(' %Y-%m-%d %H:%M:%S ')
         self.pi_cam.capture(filename)
         return filename
+
+
+class DummyCamera:
+    """This is a camera for test and development purposes."""
+
+    def __init__(self):
+        self.last_action_time = datetime(2000, 1, 1)
+        self.last_action_impt = 0
+
+    def start_preview(self):
+        pass
+
+    def stop_preview(self):
+        pass
+
+    def capture_picture(self, now, importance, pictures_dir):
+        if (now - self.last_action_time).total_seconds() < 10.0:
+            if importance <= self.last_action_impt:
+                print("Skipping action, throttling.")
+                return
+
+        self.last_action_time = now
+        self.last_action_impt = importance
+
+        filename = f'{pictures_dir}/{get_pic_stem_from_data(now, importance)}.jpg'
+
+        print(f"Capturing picture, but no camera is available: Saving dummy picture to {filename} ...")
+        try:
+            img = Image.new("RGB", (400, 300), (255, 220, 200))
+            img.save(filename)
+        except OSError as e:
+            print(f"--> FileNotFoundError: {e}")
+        return filename
+
+
+def get_camera():
+    if is_raspberrypi:
+        return RaspberryPiCamera()
+    return DummyCamera()

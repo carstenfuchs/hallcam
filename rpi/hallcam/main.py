@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import os
-import requests, shutil, socket
+import requests, shutil, socket, sys
 from datetime import datetime, timedelta
 from time import sleep
 from pathlib import Path
 
 import localconfig
-from camera import Camera
+from camera import get_camera
 from common import fmt_bytes, get_data_from_pic_stem, get_score
 
 
@@ -122,8 +122,8 @@ def upload_picture(filename, upload_url):
         # https://raspberrypi.stackexchange.com/questions/41784/temperature-differences-between-cpu-gpu
         cpu_temp = temp_file.readline().strip()
 
-    with open(filename, 'rb') as pic_file:
-        try:
+    try:
+        with open(filename, 'rb') as pic_file:
             r = requests.post(
                 upload_url,
                 data={
@@ -139,37 +139,36 @@ def upload_picture(filename, upload_url):
             if r.status_code != 302:
                 print(f"Unexpected response: Expected status_code 302, got status_code {r.status_code}.")
                 print(r)
-                print(r.text[:2000])
-        except requests.exceptions.Timeout as e:
-            print(f"Requests raised a timeout exception: {e}")
-        except requests.exceptions.RequestException as e:
-            print(f"Requests raised an exception: {e}")
-
-
-PICTURES_DIR = '/var/HallCam/pictures/'
+                for line in r.text.splitlines():
+                    if any(keyword in line for keyword in ('error', 'invalid')):
+                        print(line[:240])
+    except FileNotFoundError as e:
+        print(f"--> FileNotFoundError: {e}")
+    except requests.exceptions.Timeout as e:
+        print(f"--> Requests raised a timeout exception: {e}")
+    except requests.exceptions.RequestException as e:
+        print(f"--> Requests raised an exception: {e}")
 
 
 def run_camera():
-    if not os.access(PICTURES_DIR, os.W_OK):
-        print(f"Cannot access {PICTURES_DIR}.")
-    else:
-        print(f"Access to {PICTURES_DIR} is good.")
+    access_ok = os.access(localconfig.PICTURES_DIR, os.W_OK)
+    camera = get_camera()
 
-    print(f"localconfig.UPLOAD_URL = {localconfig.UPLOAD_URL}")
-    print("")
+    print(f"host        {socket.gethostname()}")
+    print(f"camera      {camera.__class__}")
+    print(f"save to     {localconfig.PICTURES_DIR} (access {'OK' if access_ok else 'FAILED'})")
+    print(f"upload to   {localconfig.UPLOAD_URL}")
 
-    camera = Camera()
-    camera.pi_cam.start_preview()
-    sleep(2)
+    camera.start_preview()
 
     tasks = [
         TaskEvery5Minutes(),
         TaskEveryFullHour(),
       # TaskExposureMonitor(),
-        TaskCleanupDisk(PICTURES_DIR),
+        TaskCleanupDisk(localconfig.PICTURES_DIR),
     ]
 
-    print("Entering main loop, press CTRL+C to exit.")
+    print("\nEntering main loop, press CTRL+C to exit.")
     try:
         prev_dt = datetime.now()
 
@@ -181,7 +180,7 @@ def run_camera():
                 importance = max(importance, task.is_due(prev_dt, curr_dt))
 
             if importance > 0:
-                filename = camera.capture_picture(curr_dt, importance, PICTURES_DIR)
+                filename = camera.capture_picture(curr_dt, importance, localconfig.PICTURES_DIR)
                 upload_picture(filename, localconfig.UPLOAD_URL)
 
             prev_dt = curr_dt
@@ -190,7 +189,7 @@ def run_camera():
     except KeyboardInterrupt:
         print("\nExiting ...")
 
-    camera.pi_cam.stop_preview()
+    camera.stop_preview()
 
 
 if __name__ == "__main__":
@@ -201,8 +200,9 @@ if __name__ == "__main__":
         # namespace instead of being created on the file system itself.
         # https://stackoverflow.com/questions/788411/check-to-see-if-python-script-is-running
         lock_socket.bind('\0' + 'HallCam')
-
-        # We got the lock.
-        run_camera()
     except socket.error:
         print("HallCam is already running.")
+        sys.exit()
+
+    # We got the lock.
+    run_camera()

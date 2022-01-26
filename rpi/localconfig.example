@@ -5,5 +5,9 @@
 # UPLOAD_URL = "http://192.168.1.90:8000/upload/"
 UPLOAD_URL = None
 
+# The local directory into which all taken pictures are saved before they are
+# uploaded to the webserver.
+PICTURES_DIR = '/var/HallCam/pictures/'
+
 CAMERA_NAME = "camera_name"
 CAMERA_UPLOAD_PASSWORD = "insecure password QJgrQs9iHJH43e"
