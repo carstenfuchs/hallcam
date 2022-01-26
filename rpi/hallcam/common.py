@@ -1,4 +1,5 @@
 from datetime import datetime
+from PIL import Image, ImageDraw
 
 
 def fmt_bytes(size, decimal_places=2):
@@ -62,3 +63,11 @@ def get_score(dt, importance, now):
     nrm = (-(8 - 1), (365*8 - 1)*24.0)
 
     return vec[0]*nrm[0] + vec[1]*nrm[1]
+
+
+def create_simple_image(text=None, text_color=(0, 50, 80), size=(400, 300), background_color=(255, 220, 200)):
+    img = Image.new("RGB", size, background_color)
+    if text:
+        d = ImageDraw.Draw(img)
+        d.text((10, 10), text, fill=text_color)
+    return img

@@ -6,8 +6,8 @@ try:
     from picamera import PiCamera, Color
     is_raspberrypi = True
 except ImportError:
-    # In the absence of the PiCamera, we need PIL in order to create dummy pictures.
-    from PIL import Image
+    # In the absence of the PiCamera, we need to create dummy pictures.
+    from common import create_simple_image
     is_raspberrypi = False
 
 
@@ -85,14 +85,16 @@ class DummyCamera:
         self.last_action_time = now
         self.last_action_impt = importance
 
-        filename = f'{pictures_dir}/{get_pic_stem_from_data(now, importance)}.jpg'
+        filename = f'{pictures_dir}/{get_pic_stem_from_data(now, importance)}.png'
 
         print(f"Capturing picture, but no physical camera is available: Saving dummy picture to {filename} ...")
         try:
-            img = Image.new("RGB", (400, 300), (255, 220, 200))
-            img.save(filename)
+            create_simple_image(
+                f"DummyCamera\nsaving picture to\n{filename}",
+            ).save(filename)
         except OSError as e:
             print(f"--> FileNotFoundError: {e}")
+
         return filename
 
 
