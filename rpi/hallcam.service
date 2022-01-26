@@ -16,7 +16,7 @@ Restart=always
 RestartSec=600
 
 # https://stackoverflow.com/questions/37211115/how-to-enable-a-virtualenv-in-a-systemd-service-unit
-ExecStart=/home/pi/.virtualenvs/HallCam-rpi/bin/python /home/pi/HallCam/rpi/run.py
+ExecStart=/home/pi/.virtualenvs/HallCam-rpi/bin/python /home/pi/HallCam/rpi/hallcam/main.py
 
 # Have stdout shown in the logs immediately.
 Environment=PYTHONUNBUFFERED=1
