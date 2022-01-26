@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-import requests, shutil, socket, sys
+import shutil, socket, sys
 from datetime import datetime, timedelta
 from time import sleep
 from pathlib import Path
@@ -8,6 +8,7 @@ from pathlib import Path
 import localconfig
 from camera import get_camera
 from common import fmt_bytes, get_data_from_pic_stem, get_score
+from upman import UploadManager
 
 
 class Task:
@@ -111,48 +112,10 @@ class TaskCleanupDisk(Task):
         return 0
 
 
-def upload_picture(filename, upload_url):
-    if not upload_url:
-        return
-
-    print(f"Uploading {filename} ...")
-
-    with open("/sys/class/thermal/thermal_zone0/temp") as temp_file:
-        # https://www.elektronik-kompendium.de/sites/raspberry-pi/1911241.htm
-        # https://raspberrypi.stackexchange.com/questions/41784/temperature-differences-between-cpu-gpu
-        cpu_temp = temp_file.readline().strip()
-
-    try:
-        with open(filename, 'rb') as pic_file:
-            r = requests.post(
-                upload_url,
-                data={
-                    'camera': socket.gethostname(),
-                    'password': localconfig.UPLOAD_PASSWORD,
-                    'cpu_temp': cpu_temp,
-                },
-                files={'pic_file': pic_file},
-                allow_redirects=False,
-                timeout=30.0,
-            )
-            print(f"Uploaded picture to {upload_url} in {r.elapsed.total_seconds()} s.")
-            if r.status_code != 302:
-                print(f"Unexpected response: Expected status_code 302, got status_code {r.status_code}.")
-                print(r)
-                for line in r.text.splitlines():
-                    if any(keyword in line for keyword in ('error', 'invalid')):
-                        print(line[:240])
-    except FileNotFoundError as e:
-        print(f"--> FileNotFoundError: {e}")
-    except requests.exceptions.Timeout as e:
-        print(f"--> Requests raised a timeout exception: {e}")
-    except requests.exceptions.RequestException as e:
-        print(f"--> Requests raised an exception: {e}")
-
-
 def run_camera():
     access_ok = os.access(localconfig.PICTURES_DIR, os.W_OK)
     camera = get_camera()
+    upman = UploadManager(localconfig.UPLOAD_URL, localconfig.UPLOAD_PASSWORD)
 
     print(f"host        {socket.gethostname()}")
     print(f"camera      {camera.__class__}")
@@ -181,7 +144,7 @@ def run_camera():
 
             if importance > 0:
                 filename = camera.capture_picture(curr_dt, importance, localconfig.PICTURES_DIR)
-                upload_picture(filename, localconfig.UPLOAD_URL)
+                upman.upload(filename)
 
             prev_dt = curr_dt
             sleep(1)
