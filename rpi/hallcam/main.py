@@ -133,9 +133,9 @@ def upload_picture(filename, upload_url):
                 },
                 files={'pic_file': pic_file},
                 allow_redirects=False,
-                timeout=10.0,
+                timeout=30.0,
             )
-            print(f"Uploaded picture to {upload_url}")
+            print(f"Uploaded picture to {upload_url} in {r.elapsed.total_seconds()} s.")
             if r.status_code != 302:
                 print(f"Unexpected response: Expected status_code 302, got status_code {r.status_code}.")
                 print(r)
