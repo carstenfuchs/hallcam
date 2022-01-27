@@ -66,7 +66,7 @@ def get_score(dt, importance, now):
 
 
 def create_simple_image(text=None, text_color=(0, 50, 80), size=(400, 300), background_color=(255, 220, 200)):
-    img = Image.new("RGB", size, background_color)
+    img = Image.new("P", size, background_color)
     if text:
         d = ImageDraw.Draw(img)
         d.text((10, 10), text, fill=text_color)

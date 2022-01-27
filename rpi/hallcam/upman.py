@@ -14,24 +14,22 @@ class UploadManager:
         self.num_upload_fails = 0
 
     def open_pic(self, filename):
-        if self.num_upload_fails >= 3:
-            msg = f"{self.num_upload_fails} prior uploads failed.\nDummy images are sent until the next successful upload."
-            print(msg)
+        if self.num_upload_fails >= 5:
+            print(f"{self.num_upload_fails} prior uploads failed --> sending only a lightweight debug image.")
 
             pic_name = Path(filename).stem + ".png"
             pic_file = BytesIO()
             create_simple_image(
-                # This image is sent because x prior upload attempts have failed.
-                # The true image is safely kept on the camera's disk space,
-                # but in order increase the chance of a successful transmission,
-                # this image, that requires a much smaller transfer volume,
-                # has been substituted for the next upload attempt.
-                # If the upload of this image is successful, the normal uploading
-                # is resumed.
-                msg,
+                "There seems to be a problem with the network connection:\n"
+                f"{self.num_upload_fails} attempts to upload pictures from the camera to the webserver\n"
+                "have failed. All pictures are safely kept on the camera's disk\n"
+                "space, but upload attempts are now started with images like\n"
+                "this to facilitate troubleshooting.\n"
+                "Normal uploads are resumed as soon as the next upload succeeded.\n",
                 text_color=(255, 255, 255),
-                background_color=(255, 60, 30),
-            ).save(pic_file, format="png")
+              # background_color=(255, 60, 30),  # dark orange
+                background_color=(30, 60, 255),
+            ).save(pic_file, format="png", optimize=True)
             pic_file.seek(0)
 
             return pic_name, pic_file
