@@ -127,6 +127,12 @@ pi@raspberrypi:~ $ sudo raspi-config
 #     alias dir='dir -l --color=auto --group-directories-first'
 pi@raspberrypi:~ $ nano .bashrc
 
+# Ergänze dies in /etc/ssh/sshd_config :
+
+# Gelegentlich friert die SSH Verbindung ein.
+# Lt. div. Internetberichten soll dies helfen:
+IPQoS cs0 cs0
+
 # Reboot
 
 # The camera service will later save the pictures in this directory.
@@ -141,6 +147,7 @@ pi@raspberrypi:~ $ git clone https://github.com/carstenfuchs/hallcam.git HallCam
 Cloning into 'HallCam'...
 # ...
 
+sudo apt-get install libtiff5  # for Pillow
 pi@raspberrypi:~ $ sudo apt install python3-venv
 pi@raspberrypi:~ $ mkdir .virtualenvs
 pi@raspberrypi:~ $ python3 -m venv ~/.virtualenvs/HallCam-rpi

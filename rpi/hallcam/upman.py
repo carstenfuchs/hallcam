@@ -70,10 +70,11 @@ class UploadManager:
                 )
 
             print(f"Uploaded picture to {self.UPLOAD_URL} in {r.elapsed.total_seconds()} s.")
-            self.num_upload_fails = 0
 
-            if r.status_code != 302:
-                print(f"Unexpected response: Expected status_code 302, got status_code {r.status_code}.")
+            if r.status_code == 302:
+                self.num_upload_fails = 0
+            else:
+                print(f"Unexpected response: Expected status_code 302, got {r.status_code}.")
                 print(r)
                 for line in r.text.splitlines():
                     if any(keyword in line for keyword in ('error', 'invalid')):
