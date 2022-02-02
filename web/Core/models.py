@@ -1,4 +1,8 @@
+from django.core.files.storage import default_storage
 from django.db import models
+from pathlib import Path
+from PIL import Image
+
 from Accounts.models import User
 
 
@@ -14,7 +18,7 @@ class Camera(models.Model):
 
 
 class Picture(models.Model):
-    """A picture is a photo or thumbnail of a scene."""
+    """A picture is a photo of a scene along with related metadata."""
 
     EVENT_CHOICES = [
         ('scheduled', ''),
@@ -29,3 +33,33 @@ class Picture(models.Model):
     timestamp = models.DateTimeField(help_text="The time at which the camera took the picture.")
   # event     = models.CharField(max_length=12, choices=EVENT_CHOICES, help_text="The event that triggered the capture of this picture.")
   # quality   = Cam_original, cam_upload, thumbnail
+
+    def get_image_url(self):
+        filename = self.picture.name[9:]
+        return default_storage.base_url + f"pictures/{filename}"
+
+    def get_thumb_url(self):
+        filename   = self.picture.name[9:]
+        pic_path   = Path(default_storage.location, "pictures", filename)
+        thumb_path = Path(default_storage.location, "thumbs",   filename).with_suffix('.jpg')
+
+        # print("get_thumb_url()")
+        # print(f"--> {pic_path = }")
+        # print(f"--> {pic_path.exists() = }")
+        # print(f"--> {thumb_path = }")
+        # print(f"--> {thumb_path.exists() = }")
+
+        # If the thumbnail image does not yet exist, create it now.
+        if not thumb_path.exists():
+            assert thumb_path.parent.exists()
+            try:
+                with Image.open(pic_path) as img:
+                    if img.mode != 'RGB':
+                        # Make sure that PNG images with a palette are converted to RGB.
+                        img = img.convert('RGB')
+                    img.thumbnail((400, 300), resample=Image.LANCZOS)
+                    img.save(thumb_path, 'JPEG')
+            except FileNotFoundError as e:
+                print("Picture.get_thumb_url() --> ", e)
+
+        return default_storage.base_url + str(thumb_path.relative_to(default_storage.location))

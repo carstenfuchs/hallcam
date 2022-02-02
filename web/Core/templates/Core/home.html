@@ -27,8 +27,8 @@
                         items: [
                             {% for pic in cp.pictures %}
                                 {
-                                    src: '{{ pic.picture.url }}',
-                                    srct: '{{ pic.picture.url }}',
+                                    src: '{{ pic.get_image_url }}',
+                                    srct: '{{ pic.get_thumb_url }}',
                                     title: 'Hallo!',
                                 },
                             {% endfor %}

@@ -25,7 +25,7 @@ def homepage_view(request):
         cam_pics.append(
             {
                 'camera': cam,
-                'pictures': pics,
+                'pictures': list(pics),   # this must be a list, or we can only iterate it once
             },
         )
 
