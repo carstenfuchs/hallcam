@@ -20,6 +20,10 @@ class Camera(models.Model):
 class Picture(models.Model):
     """A picture is a photo of a scene along with related metadata."""
 
+    PICTURES_SUBDIR = 'pictures'
+    THUMBNAILS_SUBDIR = 'thumbs'
+    VALID_SUFFIXES = ('.jpg', '.png', '.gif', '.jpeg')
+
     EVENT_CHOICES = [
         ('scheduled', ''),
         ('manual', 'ssh or local terminal'),
