@@ -1,5 +1,5 @@
 from django.urls import path
-from Core.views import home, upload, viewer
+from Core.views import home, upload
 
 
 app_name = 'core'
@@ -7,5 +7,4 @@ app_name = 'core'
 urlpatterns = [
     path('', home.homepage_view, name="home"),
     path('upload/', upload.upload_view, name="upload"),
-    path('viewer/', viewer.viewer_view, name="viewer"),
 ]
