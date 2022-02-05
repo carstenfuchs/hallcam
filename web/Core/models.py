@@ -33,7 +33,7 @@ class Picture(models.Model):
     ]
 
     camera    = models.ForeignKey(Camera, models.PROTECT, help_text="The camera that has taken the picture.")
-    picture   = models.ImageField(upload_to="pictures/")
+    picture   = models.CharField(max_length=48, unique=True)
     timestamp = models.DateTimeField(help_text="The time at which the camera took the picture.")
   # event     = models.CharField(max_length=12, choices=EVENT_CHOICES, help_text="The event that triggered the capture of this picture.")
   # quality   = Cam_original, cam_upload, thumbnail
