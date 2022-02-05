@@ -1,0 +1,79 @@
+{% extends "Core/bs5_base.html" %}
+{# load static #}
+
+{% block extrastyle %}
+    <style>
+        table.table.pic_stats {
+            width: auto;
+            text-align: right;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <table class="table table-striped table-dark pic_stats" style="margin-left: auto;">
+                <thead>
+                    <tr>
+                        <th scope="col">Pictures</th>
+                        <th scope="col">pictures/*</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ stats.pic_objects_without_pic_file }}</td>
+                        <td>–</td>
+                    </tr>
+                    <tr>
+                        <td>{{ stats.pic_objects_with_pic_file }}</td>
+                        <td>{{ stats.pic_files_with_pic_object }}</td>
+                    </tr>
+                    <tr>
+                        <td>–</td>
+                        <td>{{ stats.pic_files_without_pic_object }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th scope="col">{{ stats.pic_objects_without_pic_file|add:stats.pic_objects_with_pic_file }}</th>
+                        <th scope="col">{{ stats.pic_files_with_pic_object|add:stats.pic_files_without_pic_object }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="col">
+            <table class="table table-striped table-dark pic_stats" style="margin-right: auto;">
+                <thead>
+                    <tr>
+                        <th scope="col">pictures/*</th>
+                        <th scope="col">thumbs/*</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ stats.pic_files_without_thumb_file }}</td>
+                        <td>–</td>
+                    </tr>
+                    <tr>
+                        <td>{{ stats.pic_files_with_thumb_file }}</td>
+                        <td>{{ stats.thumb_files_with_pic_file }}</td>
+                    </tr>
+                    <tr>
+                        <td>–</td>
+                        <td>{{ stats.thumb_files_without_pic_file }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th scope="col">{{ stats.pic_files_without_thumb_file|add:stats.pic_files_with_thumb_file }}</th>
+                        <th scope="col">{{ stats.thumb_files_with_pic_file|add:stats.thumb_files_without_pic_file }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
