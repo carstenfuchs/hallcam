@@ -33,19 +33,18 @@ class Picture(models.Model):
     ]
 
     camera    = models.ForeignKey(Camera, models.PROTECT, help_text="The camera that has taken the picture.")
-    picture   = models.CharField(max_length=48, unique=True)
+    filename  = models.CharField(max_length=48, unique=True)
     timestamp = models.DateTimeField(help_text="The time at which the camera took the picture.")
   # event     = models.CharField(max_length=12, choices=EVENT_CHOICES, help_text="The event that triggered the capture of this picture.")
   # quality   = Cam_original, cam_upload, thumbnail
+  # temperature, time-to-upload, …
 
     def get_image_url(self):
-        filename = self.picture.name[9:]
-        return default_storage.base_url + f"pictures/{filename}"
+        return default_storage.base_url + f"{self.PICTURES_SUBDIR}/{self.filename}"
 
     def get_thumb_url(self):
-        filename   = self.picture.name[9:]
-        pic_path   = Path(default_storage.location, "pictures", filename)
-        thumb_path = Path(default_storage.location, "thumbs",   filename).with_suffix('.jpg')
+        pic_path   = Path(default_storage.location, self.PICTURES_SUBDIR,   self.filename)
+        thumb_path = Path(default_storage.location, self.THUMBNAILS_SUBDIR, self.filename).with_suffix('.jpg')
 
         # print("get_thumb_url()")
         # print(f"--> {pic_path = }")

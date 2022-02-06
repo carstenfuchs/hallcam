@@ -22,8 +22,7 @@ def sync_pictures(hot_run, verbosity=1):
 
     # Examine the `Picture` objects in the database.
     for pic_obj in Picture.objects.all():
-        filename = pic_obj.picture.name[9:]
-        pic_path = Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR, filename)
+        pic_path = Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR, pic_obj.filename)
 
         if pic_path.is_file():
             stats['pic_objects_with_pic_file'] += 1
@@ -39,7 +38,7 @@ def sync_pictures(hot_run, verbosity=1):
     # Examine the files in `pictures/*`.
     pics_dir = Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR)
     for pic_path in pics_dir.iterdir():
-        if Picture.objects.filter(picture="pictures/" + pic_path.name).exists():
+        if Picture.objects.filter(filename=pic_path.name).exists():
             stats['pic_files_with_pic_object'] += 1
         else:
             # There is an image file that is not known to the database.

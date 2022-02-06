@@ -10,6 +10,6 @@ admin.site.register(Camera, CameraAdmin)
 
 
 class PictureAdmin(admin.ModelAdmin):
-    list_display = ('camera', 'picture', 'timestamp')
+    list_display = ('camera', 'filename', 'timestamp')
 
 admin.site.register(Picture, PictureAdmin)

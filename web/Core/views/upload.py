@@ -1,13 +1,14 @@
 from backports.zoneinfo import ZoneInfo
-from datetime import date, datetime
+from datetime import datetime
+from pathlib import Path
 
+from django.conf import settings
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
 
 from Core.models import Camera, Picture
-from HallCam import localconfig
 
 
 class UploadPictureForm(forms.Form):
@@ -30,42 +31,59 @@ class UploadPictureForm(forms.Form):
         return cd
 
 
+def save_to_disk(uploaded_pic_file):
+    """Saves the given `UploadedFile` to disk and returns its full path."""
+
+    pic_path = Path(
+        settings.MEDIA_ROOT,
+        Picture.PICTURES_SUBDIR,
+        uploaded_pic_file.name,
+    )
+
+    with open(pic_path, 'wb') as dest_file:
+        for chunk in uploaded_pic_file.chunks():
+            dest_file.write(chunk)
+
+    print(f"Uploaded picture saved to {pic_path} ({uploaded_pic_file.content_type}, {uploaded_pic_file.size} bytes)")
+    return pic_path
+
+
 @csrf_exempt
 def upload_view(request):
     # The basics of this view are explained at
     # https://docs.djangoproject.com/en/4.0/topics/http/file-uploads/
 
     if request.method == 'POST':
+        # The items in `request.FILES` are of type `UploadedFile`. For details,
+        # see https://docs.djangoproject.com/en/4.0/ref/files/uploads/
         form = UploadPictureForm(request.POST, request.FILES)
 
         if form.is_valid():
-            # The values in `request.FILES` are of type `UploadedFile`.
-            uploaded_pic_file = request.FILES['pic_file']
+            # The `ImageField` in the form normalizes to an `UploadedFile` object.
+            # This is just the `UploadedFile` taken from request.FILES['pic_file'],
+            # augmented with an additional `image` attribute as described at
+            # https://docs.djangoproject.com/en/4.0/ref/forms/fields/#imagefield
+            assert form.cleaned_data['pic_file'] == request.FILES['pic_file']
 
-            # with open('some/file/name.txt', 'wb+') as destination:
-            #     for chunk in request.FILES['pic_file'].chunks():
-            #         destination.write(chunk)
-            print(f"{uploaded_pic_file.name = }")
-            print(f"{uploaded_pic_file.size = }")
-            print(f"{uploaded_pic_file.content_type = }")
-            print(f"{uploaded_pic_file.content_type_extra = }")
+            pic_path = save_to_disk(form.cleaned_data['pic_file'])
 
             try:
-                dt = datetime.strptime(uploaded_pic_file.name[4:17], "%Y%m%d_%H%M")
+                dt = datetime.strptime(pic_path.name[4:17], "%Y%m%d_%H%M")
                 dt = dt.replace(tzinfo=ZoneInfo('Europe/Berlin'))
             except ValueError:
                 dt = timezone.now()
 
-            print(f"{dt = }")
-
-            pic_obj = Picture(
-                camera=Camera.objects.all()[0],
-                picture=uploaded_pic_file,
-                timestamp=dt,
+            # If a picture with the given filename already exists, the file on
+            # disk is overwritten and the related `Picture` object is updated
+            # rather than created (the `filename` must be unique).
+            Picture.objects.update_or_create(
+                filename=pic_path.name,
+                defaults={
+                    'camera': form.cleaned_data['camera'],
+                    'timestamp': dt,
+                }
             )
-            pic_obj.save()
 
-            # message.success("…")
             return redirect('core:upload')
     else:
         form = UploadPictureForm()
