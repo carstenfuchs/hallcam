@@ -176,7 +176,7 @@ def cleanup_pictures(hot_run, out=None):
     pics_total_bytes = sum(pic[1] for pic in pics)
     btd_pics = max(pics_total_bytes - MAX_PICS_TOTAL, 0)
 
-    print(f"\n{len(pics)} pictures", file=out)
+    print(f"\n{len(pics)} pictures at {pics_dir}", file=out)
     print(f"{fmt_bytes(pics_total_bytes):>10} picture space taken", file=out)
     print(f"{fmt_bytes(MAX_PICS_TOTAL):>10} picture space limit (MAX_PICS_TOTAL)", file=out)
     print(f"{fmt_bytes(btd_pics):>10} to delete (by picture space limits)", file=out)
