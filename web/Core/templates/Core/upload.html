@@ -1,24 +1,20 @@
 {% extends "Core/bs5_base.html" %}
 {# load static #}
 
-{% block extrastyle %}
-    <style>
-        div.upload_form {
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col upload_form">
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col" style="max-width: 600px;">
             <form method="post" enctype="multipart/form-data">
-                {# csrf_token #}
-                {% include 'Core/inc_bs5_form_simple.html' with form=form only %}
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body px-4 pt-4 pb-0">
+                        {# csrf_token #}
+                        {% include 'Core/inc_bs5_form_simple.html' with form=form only %}
+                    </div>
+                    <div class="card-footer border-top-0 px-4 py-3">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
