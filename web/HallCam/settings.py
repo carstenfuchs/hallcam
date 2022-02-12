@@ -105,6 +105,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = 'core:login'          # The @login_required decorator redirects here.
+LOGIN_REDIRECT_URL = 'core:home'  # Ziel nach erfolgreichem Login, falls (mit "next") kein anderes Ziel angegeben wurde.
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

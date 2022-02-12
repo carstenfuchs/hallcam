@@ -1,0 +1,22 @@
+{% extends "Core/bs5_base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col" style="max-width: 600px;">
+            <div class="card shadow-sm">
+                <img src="{% static 'Core/Halle-1-2016.jpg' %}" class="card-img-top" alt="Bis bald!">
+                <div class="card-body px-4 pt-4 pb-0">
+                    {# <h1 class="card-title">{{ title }}</h1> #}
+                    <p class="mb-4">{% trans "Thanks for spending some quality time with the web site today." %}</p>
+                </div>
+                <div class="card-footer border-top-0 px-4 py-3">
+                    <a class="btn btn-primary" href="{% url 'core:login' %}">{% trans 'Log in again' %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

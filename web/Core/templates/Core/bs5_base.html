@@ -59,21 +59,16 @@
                                 <img class="rounded-circle gravatar" src="{{ user.get_gravatar_url }}?s=22" style="width: 22px; height: 22px;" alt="">
                                 {{ user.short_name }}</a>
                             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="id_UserMenu">
-                                {% comment %}
-                                {% if user.is_staff and perms.Accounts.change_user %}
-                                    <li><a class="dropdown-item" href="{% url 'admin:Accounts_user_change' user.id %}">Benutzerkonto</a></li>
-                                {% endif %}
                                 {% if user.has_usable_password %}
-                                    <li><a class="dropdown-item" href="{% url 'mitarbeiterportal:password-change' %}">Passwort ändern</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'core:password-change' %}">Passwort ändern</a></li>
                                 {% endif %}
-                                {% endcomment %}
-                                <li><a class="dropdown-item" href="{% url 'admin:logout' %}">Abmelden</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:logout' %}">Abmelden</a></li>
                             </ul>
                         </li>
                     </ul>
                 {% else %}
                     <div class="navbar-nav nav-pills ms-auto">
-                        <a class="nav-link" href="{% url 'admin:login' %}">Anmelden</a>
+                        <a class="nav-link" href="{% url 'core:login' %}">Anmelden</a>
                     </div>
                 {% endif %}
             </div>
