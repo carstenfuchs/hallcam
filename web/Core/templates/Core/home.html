@@ -54,10 +54,10 @@
                     {# Die Nanogallery wird in diesem Element die Bilder anzeigen. #}
                     <div id="id_nanogallery_{{ forloop.counter }}" class="nanogallery_container"></div>
                 {% else %}
-                    <p class="text-center">Es sind keine Bilder vorhanden.</p>
+                    <p class="text-center text-muted">Es sind keine Bilder vorhanden.</p>
                 {% endif %}
             {% empty %}
-                <p class="text-center">Es sind keine Bilder vorhanden.</p>
+                <p class="text-center text-muted">Es sind keine Bilder vorhanden.</p>
             {% endfor %}
         </div>
     </div>
