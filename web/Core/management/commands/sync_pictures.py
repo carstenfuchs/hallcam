@@ -20,8 +20,11 @@ def print_table(tab):
 class Command(BaseCommand):
     help = "Synchronizes the picture objects in the database and the picture and thumbnail files on disk."
 
+    def add_arguments(self, parser):
+        parser.add_argument("--hot-run", action="store_true", help="Actually update the database and delete files!")
+
     def handle(self, *args, **options):
-        stats = sync_pictures(hot_run=False, verbosity=options['verbosity'])
+        stats = sync_pictures(hot_run=options['hot_run'], verbosity=options['verbosity'])
         tab = [
             ["Pictures", "pictures/*", "|", "pictures/*", "thumbs/*"],
             ["--------", "----------", "|", "----------", "--------"],

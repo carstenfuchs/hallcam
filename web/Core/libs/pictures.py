@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from shutil import disk_usage
 from django.conf import settings
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
 from Core.models import Camera, Picture
 
 
@@ -64,17 +64,16 @@ def sync_pictures(hot_run, verbosity=1):
                 stats['pic_files_without_pic_object'] += 1
                 try:
                     with Image.open(pic_path, formats=('JPEG', 'PNG', 'GIF', 'MPEG')) as img:
-                        if img.verify():
-                            if verbosity > 1:
-                                print("picking up file", pic_path)
-                                print("  --> Sorry, this is not yet implemented!")  # TODO!
-                            if hot_run:
-                                pass
-                except UnidentifiedImageError:
+                        img.load()
+                        if verbosity > 1:
+                            print("picking up file", pic_path)
+                        if hot_run:
+                            print("  --> Sorry, this is not yet implemented!")  # TODO!
+                except Exception as e:
                     if verbosity > 1:
-                        print("unknown, unsupported or invalid file", pic_path, "--> deleting")
+                        print("unknown, unsupported or invalid file", pic_path, "\n    ", e, "--> deleting")
                     if hot_run:
-                        pic_path.delete()
+                        pic_path.unlink()
 
             # A thumbnail is expected to have the same suffix as the image – or 'jpg'.
             thumb_path = Path(settings.MEDIA_ROOT, Picture.THUMBNAILS_SUBDIR, cam_dir.name, pic_path.name)
@@ -104,7 +103,7 @@ def sync_pictures(hot_run, verbosity=1):
                 if verbosity > 1:
                     print("missing file", pic_path, "--> deleting related thumbnail file")
                 if hot_run:
-                    thumb_path.delete()
+                    thumb_path.unlink()
 
     return stats
 
