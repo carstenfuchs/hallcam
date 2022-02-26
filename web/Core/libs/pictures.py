@@ -2,11 +2,12 @@ from datetime import datetime
 from pathlib import Path
 from shutil import disk_usage
 from django.conf import settings
-from Core.models import Picture
+from PIL import Image, UnidentifiedImageError
+from Core.models import Camera, Picture
 
 
 def sync_pictures(hot_run, verbosity=1):
-    """Synchronizes the picture objects in the database and the picture and thumbnail files on disk."""
+    """Synchronizes the picture objects in the database with the picture and thumbnail files on disk."""
 
     stats = {
         'pic_objects_with_pic_file': 0,
@@ -22,9 +23,18 @@ def sync_pictures(hot_run, verbosity=1):
         'thumb_files_without_pic_file': 0,
     }
 
+    cam_dir_names = [
+        f"camera-{cam_id}" for cam_id in Camera.objects.values_list('id', flat=True).order_by('id')
+    ]
+
     # Examine the `Picture` objects in the database.
     for pic_obj in Picture.objects.all():
-        pic_path = Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR, pic_obj.filename)
+        pic_path = Path(
+            settings.MEDIA_ROOT,
+            Picture.PICTURES_SUBDIR,
+            f"camera-{pic_obj.camera_id}",
+            pic_obj.filename,
+        )
 
         if pic_path.is_file():
             stats['pic_objects_with_pic_file'] += 1
@@ -38,44 +48,63 @@ def sync_pictures(hot_run, verbosity=1):
                 pic_obj.delete()
 
     # Examine the files in `pictures/*`.
-    pics_dir = Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR)
-    for pic_path in pics_dir.iterdir():
-        if Picture.objects.filter(filename=pic_path.name).exists():
-            stats['pic_files_with_pic_object'] += 1
-        else:
-            # There is an image file that is not known to the database.
-            # Well, let's pick it up!
+    for cam_dir in Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR).iterdir():
+        if not (cam_dir.is_dir() and cam_dir.name in cam_dir_names):
             stats['pic_files_without_pic_object'] += 1
             if verbosity > 1:
-                print("picking up file", pic_path)
-            # if is_suitable:
-            #     pickup()
-            # else:
-            #     del_file()
+                print("unknown object", cam_dir, "should not be here!")
+            continue
 
-        # A thumbnail is expected to have the same suffix as the image – or 'jpg'.
-        thumb_path = Path(settings.MEDIA_ROOT, Picture.THUMBNAILS_SUBDIR, pic_path.name)
-        if thumb_path.is_file() or thumb_path.with_suffix('.jpg').is_file():
-            stats['pic_files_with_thumb_file'] += 1
-        else:
-            # There is an image file that has no corresponding thumb file.
-            # It's okay to ignore this, as thumbnails are lazily recreated as required.
-            stats['pic_files_without_thumb_file'] += 1
+        for pic_path in cam_dir.iterdir():
+            if Picture.objects.filter(camera_id=int(cam_dir.name.partition("-")[2]), filename=pic_path.name).exists():
+                stats['pic_files_with_pic_object'] += 1
+            else:
+                # There is an image file that is not known to the database.
+                # Well, let's pick it up!
+                stats['pic_files_without_pic_object'] += 1
+                try:
+                    with Image.open(pic_path, formats=('JPEG', 'PNG', 'GIF', 'MPEG')) as img:
+                        if img.verify():
+                            if verbosity > 1:
+                                print("picking up file", pic_path)
+                                print("  --> Sorry, this is not yet implemented!")  # TODO!
+                            if hot_run:
+                                pass
+                except UnidentifiedImageError:
+                    if verbosity > 1:
+                        print("unknown, unsupported or invalid file", pic_path, "--> deleting")
+                    if hot_run:
+                        pic_path.delete()
+
+            # A thumbnail is expected to have the same suffix as the image – or 'jpg'.
+            thumb_path = Path(settings.MEDIA_ROOT, Picture.THUMBNAILS_SUBDIR, cam_dir.name, pic_path.name)
+            if thumb_path.is_file() or thumb_path.with_suffix('.jpg').is_file():
+                stats['pic_files_with_thumb_file'] += 1
+            else:
+                # There is an image file that has no corresponding thumb file.
+                # It's okay to ignore this, as thumbnails are lazily recreated as required.
+                stats['pic_files_without_thumb_file'] += 1
 
     # Examine the files in `thumbnails/*`.
-    thumbs_dir = Path(settings.MEDIA_ROOT, Picture.THUMBNAILS_SUBDIR)
-    for thumb_path in thumbs_dir.iterdir():
-        pic_path = Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR, thumb_path.name)
-        if any(pic_path.with_suffix(sfx).is_file() for sfx in Picture.VALID_SUFFIXES):
-            stats['thumb_files_with_pic_file'] += 1
-        else:
-            # There is no image file on disk for this thumbnail.
-            # So there is nothing we can do but to delete the thumbnail file.
+    for cam_dir in Path(settings.MEDIA_ROOT, Picture.THUMBNAILS_SUBDIR).iterdir():
+        if not (cam_dir.is_dir() and cam_dir.name in cam_dir_names):
             stats['thumb_files_without_pic_file'] += 1
             if verbosity > 1:
-                print("missing file", pic_path, "--> deleting related thumbnail file")
-            if hot_run:
-                thumb_path.delete()
+                print("unknown object", cam_dir, "should not be here!")
+            continue
+
+        for thumb_path in cam_dir.iterdir():
+            pic_path = Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR, cam_dir.name, thumb_path.name)
+            if any(pic_path.with_suffix(sfx).is_file() for sfx in Picture.VALID_SUFFIXES):
+                stats['thumb_files_with_pic_file'] += 1
+            else:
+                # There is no image file on disk for this thumbnail.
+                # So there is nothing we can do but to delete the thumbnail file.
+                stats['thumb_files_without_pic_file'] += 1
+                if verbosity > 1:
+                    print("missing file", pic_path, "--> deleting related thumbnail file")
+                if hot_run:
+                    thumb_path.delete()
 
     return stats
 
@@ -142,14 +171,18 @@ def get_score(dt, importance, now):
 def gather_pictures(clean_dir, now):
     pics = []
 
-    for pic_path in Path(clean_dir).iterdir():
-        pics.append(
-            (
-                pic_path,
-                pic_path.stat().st_size,
-                get_score(*get_data_from_pic_stem(pic_path.stem), now),
+    for cam_dir in clean_dir.iterdir():
+        for pic_path in cam_dir.iterdir():
+            pic_dt, pic_imp = get_data_from_pic_stem(pic_path.stem)
+            pics.append(
+                (
+                    pic_path,
+                    pic_path.stat().st_size,
+                    get_score(pic_dt, pic_imp, now),
+                    pic_dt,
+                    pic_imp,
+                )
             )
-        )
 
     # Sort the pictures by score.
     pics.sort(key=lambda pic: -pic[2])
@@ -165,44 +198,79 @@ def cleanup_pictures(hot_run, out=None):
     disk_total, disk_used, disk_free = disk_usage("/")
     btd_disk = max(MIN_DISK_FREE - disk_free, 0)
 
-    print(f"{fmt_bytes(disk_total):>10} disk space total", file=out)
-    print(f"{fmt_bytes(disk_used):>10} disk space used", file=out)
-    print(f"{fmt_bytes(disk_free):>10} disk space free", file=out)
-    print(f"{fmt_bytes(MIN_DISK_FREE):>10} disk space to be kept free (MIN_DISK_FREE)", file=out)
-    print(f"{fmt_bytes(btd_disk):>10} to delete (by disk space limits)", file=out)
+    # print(f"{fmt_bytes(disk_total):>10} disk space total", file=out)
+    # print(f"{fmt_bytes(disk_used):>10} disk space used", file=out)
+    # print(f"{fmt_bytes(disk_free):>10} disk space free", file=out)
+    # print(f"{fmt_bytes(MIN_DISK_FREE):>10} disk space to be kept free (MIN_DISK_FREE)", file=out)
+    # print(f"{fmt_bytes(btd_disk):>10} to delete (by disk space limits)", file=out)
 
     pics_dir = Path(settings.MEDIA_ROOT, Picture.PICTURES_SUBDIR)
     pics = gather_pictures(pics_dir, datetime.now())
     pics_total_bytes = sum(pic[1] for pic in pics)
     btd_pics = max(pics_total_bytes - MAX_PICS_TOTAL, 0)
 
-    print(f"\n{len(pics)} pictures at {pics_dir}", file=out)
-    print(f"{fmt_bytes(pics_total_bytes):>10} picture space taken", file=out)
-    print(f"{fmt_bytes(MAX_PICS_TOTAL):>10} picture space limit (MAX_PICS_TOTAL)", file=out)
-    print(f"{fmt_bytes(btd_pics):>10} to delete (by picture space limits)", file=out)
+    # print(f"\n{len(pics)} pictures at {pics_dir}", file=out)
+    # print(f"{fmt_bytes(pics_total_bytes):>10} picture space taken", file=out)
+    # print(f"{fmt_bytes(MAX_PICS_TOTAL):>10} picture space limit (MAX_PICS_TOTAL)", file=out)
+    # print(f"{fmt_bytes(btd_pics):>10} to delete (by picture space limits)", file=out)
 
     delete_at_most = max(pics_total_bytes - MIN_PICS_TOTAL, 0)
     pic_bytes_to_delete = min(max(btd_disk, btd_pics), delete_at_most)
 
-    print(f"\ncombined", file=out)
-    print(f"{fmt_bytes(MIN_PICS_TOTAL):>10} minimum picture space to keep (MIN_PICS_TOTAL)", file=out)
-    print(f"{fmt_bytes(pic_bytes_to_delete):>10} to delete (by combined limits)", file=out)
+    # print(f"\ncombined", file=out)
+    # print(f"{fmt_bytes(MIN_PICS_TOTAL):>10} minimum picture space to keep (MIN_PICS_TOTAL)", file=out)
+    # print(f"{fmt_bytes(pic_bytes_to_delete):>10} to delete (by combined limits)", file=out)
+
+    print(f"\n{fmt_bytes(disk_total)} disk space total", file=out)
+    print(f"–", file=out)
+    print(f"|", file=out)
+    print(f"| {fmt_bytes(disk_used)} disk space used", file=out)
+    print(f"|", file=out)
+    print(f"|   –", file=out)
+    print(f"|   |", file=out)
+    print(f"|   | {fmt_bytes(pics_total_bytes)} for {len(pics)} pictures at {pics_dir}", file=out)
+    print(f"|   |     --> {fmt_bytes(btd_pics) if btd_pics else 'nothing'} to delete to meet {fmt_bytes(MAX_PICS_TOTAL)} MAX_PICS_TOTAL limit", file=out)
+    print(f"|   |", file=out)
+    print(f"+   –", file=out)
+    print(f"|", file=out)
+    print(f"| {fmt_bytes(disk_free)} disk space free", file=out)
+    print(f"|     --> {fmt_bytes(btd_disk) if btd_disk else 'nothing'} to delete to meet {fmt_bytes(MIN_DISK_FREE)} MIN_DISK_FREE limit", file=out)
+    print(f"|", file=out)
+    print(f"–", file=out)
+
+    print(f"\nCleaning up …", file=out)
+    print(f"  --> {fmt_bytes(pic_bytes_to_delete) if pic_bytes_to_delete else 'nothing'} to delete", file=out)
 
     while pics and pic_bytes_to_delete > 0:
         pic = pics.pop()
+        pic_descr = f"{pic[0]},{pic[1]:>8} bytes, dt {pic[3]}, imp {pic[4]}, score {pic[2]}"
 
         if hot_run:
-            pic[0].unlink(missing_ok=True)
-            print(f"  deleted {pic[0]},{pic[1]:>8} bytes, score {pic[2]}", file=out)
+            try:
+                pic[0].unlink()
+                print(f"  deleted {pic_descr}", file=out)
+            except FileNotFoundError:
+                print(f"  WARNING: Could not delete {pic_descr}", file=out)
+
+            thumb_path = Path(
+                settings.MEDIA_ROOT,
+                Picture.THUMBNAILS_SUBDIR,
+                pic[0].parent.name,
+                pic[0].name,
+            )
+
+            try:
+                thumb_path.unlink()
+            except FileNotFoundError:
+                print(f"  WARNING: Could not delete {thumb_path}", file=out)
 
             num_del, details = Picture.objects.filter(filename=pic[0].name).delete()
             if num_del != 1:
                 print("  WARNING: Could not delete the related `Picture` object!", file=out)
         else:
-            print(f"  would delete {pic[0]},{pic[1]:>8} bytes, score {pic[2]}", file=out)
+            print(f"  would delete {pic_descr}", file=out)
 
         pic_bytes_to_delete -= pic[1]
         pics_total_bytes -= pic[1]
 
-    print(f"\n{len(pics)} pictures left", file=out)
-    print(f"{fmt_bytes(pics_total_bytes):>10} picture space taken", file=out)
+    print(f"  --> {len(pics)} pictures left in {fmt_bytes(pics_total_bytes)}", file=out)

@@ -40,11 +40,11 @@ class Picture(models.Model):
   # temperature, time-to-upload, …
 
     def get_image_url(self):
-        return default_storage.base_url + f"{self.PICTURES_SUBDIR}/{self.filename}"
+        return default_storage.base_url + f"{self.PICTURES_SUBDIR}/camera-{self.camera_id}/{self.filename}"
 
     def get_thumb_url(self):
-        pic_path   = Path(default_storage.location, self.PICTURES_SUBDIR,   self.filename)
-        thumb_path = Path(default_storage.location, self.THUMBNAILS_SUBDIR, self.filename).with_suffix('.jpg')
+        pic_path   = Path(default_storage.location, self.PICTURES_SUBDIR,   f"camera-{self.camera_id}", self.filename)
+        thumb_path = Path(default_storage.location, self.THUMBNAILS_SUBDIR, f"camera-{self.camera_id}", self.filename).with_suffix('.jpg')
 
         # print("get_thumb_url()")
         # print(f"--> {pic_path = }")
@@ -54,7 +54,10 @@ class Picture(models.Model):
 
         # If the thumbnail image does not yet exist, create it now.
         if not thumb_path.exists():
-            assert thumb_path.parent.exists()
+            # If this is the first picture of a new camera, make sure that
+            # the related subdirectory exists.
+            thumb_path.parent.mkdir(parents=True, exist_ok=True)
+
             try:
                 with Image.open(pic_path) as img:
                     if img.mode != 'RGB':

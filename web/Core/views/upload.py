@@ -31,14 +31,19 @@ class UploadPictureForm(forms.Form):
         return cd
 
 
-def save_to_disk(uploaded_pic_file):
+def save_to_disk(camera, uploaded_pic_file):
     """Saves the given `UploadedFile` to disk and returns its full path."""
 
     pic_path = Path(
         settings.MEDIA_ROOT,
         Picture.PICTURES_SUBDIR,
+        f"camera-{camera.id}",
         uploaded_pic_file.name,
     )
+
+    # If this is the first picture of a new camera, make sure that
+    # the related subdirectory exists.
+    pic_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(pic_path, 'wb') as dest_file:
         for chunk in uploaded_pic_file.chunks():
@@ -65,7 +70,7 @@ def upload_view(request):
             # https://docs.djangoproject.com/en/4.0/ref/forms/fields/#imagefield
             assert form.cleaned_data['pic_file'] == request.FILES['pic_file']
 
-            pic_path = save_to_disk(form.cleaned_data['pic_file'])
+            pic_path = save_to_disk(form.cleaned_data['camera'], form.cleaned_data['pic_file'])
 
             try:
                 dt = datetime.strptime(pic_path.name[4:17], "%Y%m%d_%H%M")

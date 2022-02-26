@@ -1,25 +1,61 @@
-import pprint
 from django.core.management.base import BaseCommand
 from Core.libs.pictures import sync_pictures
+
+
+def print_table(tab):
+    num_columns = len(tab[0])
+    col_widths = [2]*num_columns
+
+    # Determine the columns widths.
+    for row in tab:
+        for col_nr, field in enumerate(row):
+            col_widths[col_nr] = max(col_widths[col_nr], len(str(field)))
+
+    for row in tab:
+        for col_nr, field in enumerate(row):
+            print(f"{field:{col_widths[col_nr]}} ", end='')
+        print('')
 
 
 class Command(BaseCommand):
     help = "Synchronizes the picture objects in the database and the picture and thumbnail files on disk."
 
     def handle(self, *args, **options):
-        # TODO: Check if PICTURES_SUBDIR and THUMBNAILS_SUBDIR are accessible (writable)
         stats = sync_pictures(hot_run=False, verbosity=options['verbosity'])
-
-        # pp = pprint.PrettyPrinter(indent=4, sort_dicts=False)
-        # pp.pprint(stats)
+        tab = [
+            ["Pictures", "pictures/*", "|", "pictures/*", "thumbs/*"],
+            ["--------", "----------", "|", "----------", "--------"],
+            [
+                stats["pic_objects_without_pic_file"],
+                "",
+                "|",
+                stats["pic_files_without_thumb_file"],
+                "",
+            ],
+            [
+                stats["pic_objects_with_pic_file"],
+                stats["pic_files_with_pic_object"],
+                "|",
+                stats["pic_files_with_thumb_file"],
+                stats["thumb_files_with_pic_file"],
+            ],
+            [
+                "",
+                stats["pic_files_without_pic_object"],
+                "|",
+                "",
+                stats["thumb_files_without_pic_file"],
+            ],
+            ["--------", "----------", "|", "----------", "--------"],
+            [
+                sum([stats["pic_objects_without_pic_file"], stats["pic_objects_with_pic_file"]]),
+                sum([stats["pic_files_with_pic_object"], stats["pic_files_without_pic_object"]]),
+                "|",
+                sum([stats["pic_files_without_thumb_file"], stats["pic_files_with_thumb_file"]]),
+                sum([stats["thumb_files_with_pic_file"], stats["thumb_files_without_pic_file"]]),
+            ],
+        ]
 
         print("")
-        print(f"Pictures    pictures/*")
-        print(f"{stats['pic_objects_without_pic_file']:6}")
-        print(f"{stats['pic_objects_with_pic_file']:6}     {stats['pic_files_with_pic_object']:6}")
-        print(f"           {stats['pic_files_without_pic_object']:6}")
+        print_table(tab)
         print("")
-        print(f"pictures/*  thumbs/*")
-        print(f"{stats['pic_files_without_thumb_file']:6}")
-        print(f"{stats['pic_files_with_thumb_file']:6}     {stats['thumb_files_with_pic_file']:6}")
-        print(f"           {stats['thumb_files_without_pic_file']:6}")
