@@ -69,3 +69,6 @@ class Picture(models.Model):
                 print("Picture.get_thumb_url() --> ", e)
 
         return default_storage.base_url + str(thumb_path.relative_to(default_storage.location))
+
+    class Meta:
+        ordering = ['timestamp']
