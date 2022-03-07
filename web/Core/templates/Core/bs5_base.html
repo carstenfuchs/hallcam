@@ -40,6 +40,12 @@
                         <li class="nav-item">
                             <a class="nav-link me-3 {# active #}" {# aria-current="page" #} href="{% url 'core:home' %}">Übersicht</a>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link me-3 dropdown-toggle" href="#" id="id_DetailsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Details</a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="id_DetailsMenu">
+                                <li><a class="dropdown-item" href="{% url 'core:home' %}?layout=all-of-24h">Alle Bilder der letzten 24 Stunden{# Last 24 hours in steps of 5 minutes #}</a></li>
+                            </ul>
+                        </li>
                         {% if user.is_staff %}
                         <li class="nav-item">
                             <a class="nav-link me-3" href="{% url 'core:stats' %}">Statistics{# 📈 #}</a>
@@ -83,6 +89,7 @@
                     {% if title %}
                         <div class="col">
                             <h1 class="my-0 text-center">{{ title }}</h1>
+                            {% if subtitle %}<p class="mt-2 mb-0 lead text-center text-muted">{{ subtitle }}</p>{% endif %}
                         </div>
                     {% endif %}
                     {% if user.profile %}
