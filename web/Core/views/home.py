@@ -1,15 +1,30 @@
-from datetime import date
+from datetime import timedelta
 from django.db import transaction
 from django.shortcuts import render
+from django.utils import timezone
 
 from Accounts.models import User
 from Core.models import Camera
 
 
+def get_all_of_last_24_hours(cameras):
+    now = timezone.now()
+    cam_pics = []
+
+    for cam in cameras:
+        pics = cam.picture_set.filter(timestamp__gte=now - timedelta(days=1))
+        cam_pics.append(
+            {
+                'camera': cam,
+                'pictures': list(pics),   # this must be a list, or we can only iterate it once
+            },
+        )
+
+    return cam_pics
+
+
 @transaction.non_atomic_requests
 def homepage_view(request):
-    heute = date.today()
-
     if request.user.is_authenticated:
         cameras = request.user.camera_set.all()
     else:
@@ -19,18 +34,9 @@ def homepage_view(request):
         except User.DoesNotExist:
             cameras = Camera.objects.none()
 
-    cam_pics = []
-    for cam in cameras:
-        pics = reversed(cam.picture_set.all().order_by('-id')[:30])
-        cam_pics.append(
-            {
-                'camera': cam,
-                'pictures': list(pics),   # this must be a list, or we can only iterate it once
-            },
-        )
-
-    return render(request, "Core/home.html", {
+    context = {
         'title': 'Übersicht',
-        'heute': heute,
-        'cam_pics': cam_pics,
-    })
+        'cam_pics': get_all_of_last_24_hours(cameras),
+    }
+
+    return render(request, "Core/home.html", context)

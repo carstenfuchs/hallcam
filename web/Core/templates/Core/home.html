@@ -41,13 +41,11 @@
 {% endblock %}
 
 {% block content %}
+
+{% if cam_pics is not None %}
 <div class="container">
     <div class="row">
         <div class="col">
-            {% for mp in missing_paths %}
-                Ein Picture-Objekt hat sich auf die nicht vorhandene Bilddatei {{ mp }} bezogen, das Picture-Objekt wurde ebenfalls gelöscht.<br>
-            {% endfor %}
-
             {% for cp in cam_pics %}
                 <h2 class="text-center">{{ cp.camera.name }}<br><small class="text-muted">{{ cp.camera.scene }}</small></h2>
                 {% if cp.pictures %}
@@ -62,4 +60,6 @@
         </div>
     </div>
 </div>
+{% endif %}
+
 {% endblock %}
