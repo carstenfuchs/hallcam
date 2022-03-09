@@ -1,42 +1,14 @@
 {% extends "Core/bs5_base.html" %}
-{# load static #}
+{% load static %}
 
 {% block extrastyle %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nanogallery2@3/dist/css/nanogallery2.min.css">
-    <style>
-        div.nanogallery_container {
-            margin-top: 40px;
-            margin-bottom: 60px;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'glightbox/css/glightbox.css' %}">
 {% endblock %}
 
 {% block extrascript %}
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nanogallery2@3/dist/jquery.nanogallery2.min.js"></script>
-
+    <script src="{% static 'glightbox/js/glightbox.min.js' %}"></script>
     <script>
-        jQuery(document).ready(function() {
-            {% for cp in cam_pics %}
-                {% if cp.pictures %}
-                    jQuery("#id_nanogallery_{{ forloop.counter }}").nanogallery2({
-                        thumbnailHeight:  400,
-                        thumbnailWidth:   300,
-                        itemsBaseURL:     '',
-
-                        items: [
-                            {% for pic in cp.pictures %}
-                                {
-                                    src: '{{ pic.get_image_url }}',
-                                    srct: '{{ pic.get_thumb_url }}',
-                                    title: 'Hallo!',
-                                },
-                            {% endfor %}
-                        ]
-                    });
-                {% endif %}
-            {% endfor %}
-        });
+        const lightbox = GLightbox({});
     </script>
 {% endblock %}
 
@@ -56,7 +28,7 @@
                             <div class="col">
                                 <div class="card">
                                     {% if pic %}
-                                        <a href="{{ pic.get_image_url }}"><img class="card-img-top" src="{{ pic.get_thumb_url }}" alt="image"></a>
+                                        <a class="glightbox" href="{{ pic.get_image_url }}"><img class="card-img-top" src="{{ pic.get_thumb_url }}" alt="image"></a>
                                     {% endif %}
                                     <div class="card-body p-1">
                                         <p class="card-text text-center text-muted">{{ pic.timestamp|date:"H:i"|default:'kein Bild' }}</p>
@@ -80,24 +52,32 @@
 {% endif %}
 
 {% if cam_pics is not None %}
-<div class="container">
-    <div class="row">
-        <div class="col">
-            {% for cp in cam_pics %}
-                <h2 class="text-center"><small>{{ cp.camera.name }}</small></h2>
-                <p class="lead text-muted text-center">{{ cp.camera.scene }}</p>
+<div class="container-fluid">
+    {% for cp_set in cam_pics %}
+        <h2 class="text-center mt-5"><small>{{ cp_set.camera.name }}</small></h2>
+        <p class="lead text-muted text-center">{{ cp_set.camera.scene }}</p>
 
-                {% if cp.pictures %}
-                    {# Die Nanogallery wird in diesem Element die Bilder anzeigen. #}
-                    <div id="id_nanogallery_{{ forloop.counter }}" class="nanogallery_container"></div>
-                {% else %}
-                    <p class="text-center text-muted">Es sind keine Bilder vorhanden.</p>
-                {% endif %}
-            {% empty %}
-                <p class="text-center text-muted">Es sind keine Bilder vorhanden.</p>
-            {% endfor %}
-        </div>
-    </div>
+        {% if cp_set.pictures %}
+            <div class="row gx-0">
+                {% for pic in cp_set.pictures %}
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 col-xxl-1">
+                        <div class="card">
+                            {% if pic %}
+                                <a class="glightbox" href="{{ pic.get_image_url }}"><img class="card-img-top" src="{{ pic.get_thumb_url }}" alt="image"></a>
+                            {% endif %}
+                            <div class="card-body p-1">
+                                <p class="card-text text-center text-muted">{{ pic.timestamp|date:"H:i"|default:'kein Bild' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-muted">Es sind keine Bilder vorhanden.</p>
+        {% endif %}
+    {% empty %}
+        <p class="text-center text-muted">Es sind keine Bilder vorhanden.</p>
+    {% endfor %}
 </div>
 {% endif %}
 
