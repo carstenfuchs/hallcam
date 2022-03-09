@@ -30,8 +30,8 @@
                                     {% if pic %}
                                         <a class="glightbox" href="{{ pic.get_image_url }}"><img class="card-img-top" src="{{ pic.get_thumb_url }}" alt="image"></a>
                                     {% endif %}
-                                    <div class="card-body p-1">
-                                        <p class="card-text text-center text-muted">{{ pic.timestamp|date:"H:i"|default:'kein Bild' }}</p>
+                                    <div class="card-body p-0">
+                                        <p class="card-text text-center text-muted small">{{ pic.timestamp|date:"H:i"|default:'kein Bild' }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -58,15 +58,15 @@
         <p class="lead text-muted text-center">{{ cp_set.camera.scene }}</p>
 
         {% if cp_set.pictures %}
-            <div class="row gx-0">
+            <div class="row gx-0 gy-2">
                 {% for pic in cp_set.pictures %}
                     <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 col-xxl-1">
                         <div class="card">
                             {% if pic %}
                                 <a class="glightbox" href="{{ pic.get_image_url }}"><img class="card-img-top" src="{{ pic.get_thumb_url }}" alt="image"></a>
                             {% endif %}
-                            <div class="card-body p-1">
-                                <p class="card-text text-center text-muted">{{ pic.timestamp|date:"H:i"|default:'kein Bild' }}</p>
+                            <div class="card-body p-0">
+                                <p class="card-text text-center text-muted small">{{ pic.timestamp|date:"H:i"|default:'kein Bild' }}</p>
                             </div>
                         </div>
                     </div>

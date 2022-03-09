@@ -32,7 +32,7 @@ def get_latest_and_24(cameras):
                 series[index] = pic
                 continue
 
-            old_delta = (series[index].timestamp.replace(tzinfo=None) - first_fh).total_seconds() / 3600.0
+            old_delta = (series[index].timestamp - first_fh).total_seconds() / 3600.0
             assert round(old_delta) == index
 
             if abs(index - delta) < abs(index - old_delta):
