@@ -1,0 +1,27 @@
+# For an introduction, see:
+# https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files
+#
+# For details, see the systemd.service man page:
+# https://www.freedesktop.org/software/systemd/man/systemd.service.html
+
+[Unit]
+Description=Perform recurrent tasks for the HallCam website
+After=multi-user.target
+Requires=network.target
+
+[Service]
+Type=simple
+User=pi
+Restart=always
+RestartSec=600
+
+WorkingDirectory=/home/pi/HallCam/web
+
+# https://stackoverflow.com/questions/37211115/how-to-enable-a-virtualenv-in-a-systemd-service-unit
+ExecStart=/home/pi/.virtualenvs/HallCam-Website/bin/python manage.py daemon
+
+# Have stdout shown in the logs immediately.
+Environment=LANG=de_DE.UTF-8 PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

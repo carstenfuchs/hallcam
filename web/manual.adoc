@@ -172,3 +172,22 @@ $ sudo systemctl restart apache2
 ==== Done!
 
 Browsing to http://localhost/ shows the home page of the HallCam project!
+
+
+== HallCam Daemon
+
+
+[source,shell]
+----
+$ sudo cp hallcam-web.service /etc/systemd/system
+# Customize user and paths settings:
+$ sudo nano /etc/systemd/system/hallcam-web.service
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable hallcam-web.service
+Created symlink /etc/systemd/system/multi-user.target.wants/hallcam.service → /etc/systemd/system/hallcam.service.
+
+$ sudo systemctl status
+$ journalctl -u hallcam-web
+$ systemctl list-dependencies multi-user.targe
+$ systemctl list-dependencies hallcam-web
+----
