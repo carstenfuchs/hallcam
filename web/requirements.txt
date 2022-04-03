@@ -2,3 +2,5 @@ Django==4.0.3
 django-improved-user==2.0a2
 django-widget-tweaks==1.4.11
 Pillow==9.0.0
+python-dateutil==2.8.2
+requests==2.27.1

@@ -117,6 +117,10 @@ def fmt_bytes(size, decimal_places=2):
     return f"{size:.{decimal_places}f} {unit:3}"
 
 
+def get_pic_stem_from_data(dt, importance):
+    return f'pic_{dt.strftime("%Y%m%d_%H%M%S")}_{importance}'
+
+
 def get_data_from_pic_stem(pic_stem):
     try:
         dt = datetime.strptime(pic_stem[4:19], "%Y%m%d_%H%M%S")

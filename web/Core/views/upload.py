@@ -49,7 +49,7 @@ def save_to_disk(camera, uploaded_pic_file):
         for chunk in uploaded_pic_file.chunks():
             dest_file.write(chunk)
 
-    print(f"Uploaded picture saved to {pic_path} ({uploaded_pic_file.content_type}, {uploaded_pic_file.size} bytes)")
+    print(f"Picture saved to {pic_path} ({uploaded_pic_file.content_type}, {uploaded_pic_file.size} bytes, camera {camera.name})")
     return pic_path
 
 
