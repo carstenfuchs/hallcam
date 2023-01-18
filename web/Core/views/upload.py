@@ -1,6 +1,6 @@
-from backports.zoneinfo import ZoneInfo
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.shortcuts import redirect, render

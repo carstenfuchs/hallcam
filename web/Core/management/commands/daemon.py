@@ -1,6 +1,6 @@
 import socket
 from time import sleep
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from dateutil import parser, tz
 from django.core.files.uploadedfile import SimpleUploadedFile

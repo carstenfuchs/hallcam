@@ -1,7 +1,7 @@
 import argparse
-from backports.zoneinfo import ZoneInfo
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand
